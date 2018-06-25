@@ -9,7 +9,7 @@ Obviously, mappability depends on read length (the more read length the more una
 
 ## Requirements
 
-GeMaTrIA interface part was developed via Python 3 (scripts _gematria.py_ and _GMS__aux__lib.py_) while more computational-consuming algorithms were implemented in C (_makeRawGMS_).
+GeMaTrIA interface part was developed via Python 3 (scripts _gematria.py_ and _GMS_aux_lib.py_) while the most computationally-consuming algorithms were implemented in C (_makeRawGMS_).
 
 Out of the box it can produce output files with a mappability track in two formats: Wig and Bed (in this case mappability will be reflected with color intensity). However a user may enhance capabilites of GeMaTriA output formats in the following way:
 
