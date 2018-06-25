@@ -23,13 +23,20 @@ Out of the box it can produce output files with a mappability track in two forma
 	- download there [igvtools](http://software.broadinstitute.org/software/igv/download) from Broadinstitute web site.
 
 Thus, for the fool set of options, your GeMaTriA directory should look as follows:
+
 ├── GMS\_aux\_lib.py
+
 ├── gematria.py
+
 ├── makeRawGMS
+
 └── utils
     ├── bedToBigBed
+    
     ├── faSize
+    
     ├── igvtools
+    
     └── igvtools.jar
 
 ## Our team
@@ -37,8 +44,11 @@ Thus, for the fool set of options, your GeMaTriA directory should look as follow
 This tool was developed by joint efforts of Evgeny Bakin<sup>1</sup>, Natalia Zorina<sup>2</sup>, Elizaveta Skalon<sup>2</sup>, Michael Utman<sup>3</sup> and Vyacheslav Batunov<sup>4</sup> under general supervision of Alexander Predeus<sup>1</sup>. 
 
 [1] Bioinformatics institute, Saint-Petersburg, Russia
+
 [2] Saint-Petersburg State University (SPbU), Russia
+
 [3] Saint-Petersburg Academic University (SPbAU), Russia
+
 [4] Saint-Petersburg State University of Aerospace Instrumentation (SUAI), Russia
 
 ## TBDgit 
