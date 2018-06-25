@@ -24,20 +24,14 @@ Out of the box it can produce output files with a mappability track in two forma
 
 Thus, for the fool set of options, your GeMaTriA directory should look as follows:
 
-├── GMS\_aux\_lib.py
-
-├── gematria.py
-
-├── makeRawGMS
-
-└── utils
-    ├── bedToBigBed
-    
-    ├── faSize
-    
-    ├── igvtools
-    
-    └── igvtools.jar
+├── GMS\_aux\_lib.py\n
+├── gematria.py\n
+├── makeRawGMS\n
+└── utils\n
+    ├── bedToBigBed\n
+    ├── faSize\n
+    ├── igvtools\n    
+    └── igvtools.jar\n
 
 ## Our team
 
