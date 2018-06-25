@@ -24,14 +24,22 @@ Out of the box it can produce output files with a mappability track in two forma
 
 Thus, for the fool set of options, your GeMaTriA directory should look as follows:
 
-├── GMS\_aux\_lib.py<br/>
-├── gematria.py<br/>
-├── makeRawGMS<br/>
-└── utils<br/>
-	├── bedToBigBed<br/>
-	├── faSize<br/>
-	├── igvtools<br/>   
-	└── igvtools.jar<br/>
+- GMS\_aux\_lib.py<br/>
+- gematria.py<br/>
+- makeRawGMS<br/>
+- utils/<br/>
+  - bedToBigBed<br/>
+  - faSize<br/>
+  - igvtools<br/>   
+  - igvtools.jar<br/>
+
+## Tool options 
+
+TBD
+
+## Usage examples
+
+TBD
 
 ## Our team
 
@@ -45,8 +53,10 @@ This tool was developed by joint efforts of Evgeny Bakin<sup>1</sup>, Natalia Zo
 
 [4] Saint-Petersburg State University of Aerospace Instrumentation (SUAI), Russia
 
-## TBDgit 
+## TBD 
 * Improve speed of output files generation.
 * Debug multithreading for large genomes.
-* Make code more readable
+* Make code more readable.
+* Add more reallistic insertion size distributions.
+* Add erroneous reads support.
 * Add automatic generation of Circos plot.
