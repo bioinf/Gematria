@@ -1,5 +1,5 @@
 # GeMaTrIA
-This project is devoted to development of fast and easy tool for Genome Mappability Track Analysis (GeMaTriA).
+This project is devoted to development of fast and easy tool for Genome Mappability Track Instant Analysis (GeMaTrIA).
 
 ## What is mappability?
 
@@ -11,18 +11,18 @@ Obviously, mappability depends on read length (the more read length the more una
 
 GeMaTrIA interface part was developed via Python 3 (scripts _gematria.py_ and _GMS_aux_lib.py_) while the most computationally-consuming algorithms were implemented in C (_makeRawGMS_).
 
-Out of the box it can produce output files with a mappability track in two formats: Wig and Bed (in this case mappability will be reflected with color intensity). However a user may enhance capabilites of GeMaTriA output formats in the following way:
+Out of the box it can produce output files with a mappability track in two formats: Wig and Bed (in this case mappability will be reflected with color intensity). However a user may enhance capabilites of GeMaTrIA output formats in the following way:
 
 * For bigWig: install Python [pyBigWig library](https://github.com/deeptools/pyBigWig)
 * For bigBed: 
-	- create directory _utils_ in GeMaTriA main directory;
+	- create directory _utils_ in GeMaTrIA main directory;
 	- download there [bigBedToBed](http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/bigBedToBed) and [faSize](http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/faSize) utilities from UCSC official web site.
 * For TDF: 
-	- create directory _utils_ in GeMaTriA main directory;
+	- create directory _utils_ in GeMaTrIA main directory;
 	- download there [faSize](http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/faSize) from UCSC official web site;
 	- download there [igvtools](http://software.broadinstitute.org/software/igv/download) from Broadinstitute web site.
 
-Thus, for the full set of options, your GeMaTriA directory should look as follows:
+Thus, for the full set of options, your GeMaTrIA directory should look as follows:
 
 - GMS\_aux\_lib.py<br/>
 - gematria.py<br/>
