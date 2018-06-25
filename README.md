@@ -22,7 +22,7 @@ Out of the box it can produce output files with a mappability track in two forma
 	- download there [faSize](http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/faSize) from UCSC official web site;
 	- download there [igvtools](http://software.broadinstitute.org/software/igv/download) from Broadinstitute web site.
 
-Thus, for the fool set of options, your GeMaTriA directory should look as follows:
+Thus, for the full set of options, your GeMaTriA directory should look as follows:
 
 - GMS\_aux\_lib.py<br/>
 - gematria.py<br/>
