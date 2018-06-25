@@ -28,10 +28,10 @@ Thus, for the fool set of options, your GeMaTriA directory should look as follow
 ├── gematria.py<br/>
 ├── makeRawGMS<br/>
 └── utils<br/>
-    ├── bedToBigBed<br/>
-    ├── faSize<br/>
-    ├── igvtools<br/>   
-    └── igvtools.jar<br/>
+	├── bedToBigBed<br/>
+	├── faSize<br/>
+	├── igvtools<br/>   
+	└── igvtools.jar<br/>
 
 ## Our team
 
