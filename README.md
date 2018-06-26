@@ -11,6 +11,11 @@ Obviously, mappability depends on read length (the more read length the more una
 
 GeMaTrIA interface part was developed via Python 3 (scripts _gematria.py_ and _GMS_aux_lib.py_) while the most computationally-consuming algorithms were implemented in C (_makeRawGMS_).
 
+The following set of extra Python libraries are required (in brackets we give the versions of the libraries for which our tool was tested):
+* numpy (1.10.4)
+* biopython (1.68)
+* scipy (0.17.1)
+
 Out of the box it can produce output files with a mappability track in two formats: Wig and Bed (in this case mappability will be reflected with color intensity). However a user may enhance capabilites of GeMaTrIA output formats in the following way:
 
 * For bigWig: install Python [pyBigWig library](https://github.com/deeptools/pyBigWig)
@@ -24,14 +29,19 @@ Out of the box it can produce output files with a mappability track in two forma
 
 Thus, for the full set of options, your GeMaTrIA directory should look as follows:
 
-- GMS\_aux\_lib.py<br/>
-- gematria.py<br/>
-- makeRawGMS<br/>
-- utils/<br/>
-  - bedToBigBed<br/>
-  - faSize<br/>
-  - igvtools<br/>   
-  - igvtools.jar<br/>
+GeMaTrIA<br/>
+|<br/>
++--&nbsp; utils/<br/>
+|&nbsp; &nbsp; &nbsp; |<br/>
+|&nbsp; &nbsp; &nbsp; +-- bedToBigBed<br/>
+|&nbsp; &nbsp; &nbsp; +-- faSize<br/>
+|&nbsp; &nbsp; &nbsp; +-- igvtools<br/>
+|&nbsp; &nbsp; &nbsp; +-- igvtools.jar<br/>
++--&nbsp; GMS\_aux\_lib.py<br/>
++--&nbsp; makeRawGMS<br/>
++--&nbsp; gematria.py<br/> 
+
+This 
 
 ## Tool options 
 
