@@ -16,7 +16,7 @@ The following set of extra Python libraries are required (in brackets we give th
 * biopython (1.68)
 * scipy (0.17.1)
 
-Out of the box it can produce output files with a mappability track in two formats: Wig and Bed (in this case mappability will be reflected with color intensity). However a user may enhance capabilites of GeMaTrIA output formats in the following way:
+Out of the box it can produce output files with a mappability track in two formats: Wig and Bed (in the latter case a mappability will be represented with a color intensity). However a user may enhance capabilites of GeMaTrIA output generation in the following way:
 
 * For bigWig: install Python [pyBigWig library](https://github.com/deeptools/pyBigWig)
 * For bigBed: 
@@ -41,15 +41,50 @@ GeMaTrIA<br/>
 +--&nbsp; makeRawGMS<br/>
 +--&nbsp; gematria.py<br/> 
 
-This 
+## Installation
+
+Just clone this GitHub project and download extra utilities if required (see section **Requirements**)
 
 ## Tool options 
 
-TBD
+```shell
+python3 gematria.py [-h] -i FILE -o Str [-l Int] [-r Str] [-f Str] [-t Int] [-m]                   
+```
+
+Arguments:
+*  `-i, --input`    Name of FASTA-file with a genome.
+*  `-o, --output`   Prefix of output files generated with GeMaTrIA.
+*  `-l, --length`   Read length (default is 100).
+*  `-r, --read`     Reads type parameters in the following format: S (for single-end reads) **or** N:mu:sigma (for Normal distribution of insertions size) **or** U:min:max (for Uniform distribution of insertion size). Default is a single-end mode.
+*  `-f, --formats`  List of required output formats separated with commas (**without spaces**), e.g. format1,format2,... etc. Supported formats are Wig, bigWig, Bed, bigBed, TDF. Default is bigWig.
+*  `-m, --mat`      Save debug data in Matlab MAT format.
+*  `-t, --threads`  Number of threads (**please, note, that multithreading for large genomes is still under debugging**).
 
 ## Usage examples
 
-TBD
+Easiest run of GeMaTrIA for 100bp single-end reads with a result saving in a bigWig file:
+```shell
+python3 gematria.py -i e_coli.fasta -o e_coli
+```
+
+Save data in Wig and TDF formats:
+```shell
+python3 gematria.py -i e_coli.fasta -o e_coli -f Wig,TDF
+```
+
+Calculate mappability for 100bp paired-end reads with 200..300bp insertion size:
+```shell
+python3 gematria.py -i e_coli.fasta -o e_coli -f Wig,TDF -r U:200:300
+```
+Calculate mappability for 200bp paired-end reads with 400..600bp insertion size:
+```shell
+python3 gematria.py -i e_coli.fasta -o e_coli -f Wig,TDF -l 200 -r U:400:600
+```
+
+Do all this, using 4 threads:
+```shell
+python3 gematria.py -i e_coli.fasta -o e_coli -f Wig,TDF -l 200 -r U:400:600 -t 4
+```
 
 ## Our team
 
