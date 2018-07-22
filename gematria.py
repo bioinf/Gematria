@@ -27,7 +27,7 @@ if __name__ == '__main__':
     if not( os.path.isdir("./{}".format(project_name)) ):
         os.system('mkdir {}'.format(project_name))
         
-    run_cmd = "{0}/makeRawGMS {1} {2} {3}".format(current_dir, in_file, read_lng, threads)
+    run_cmd = "{0}/makeRawGMS {1} {2} {3} {4}".format(current_dir, in_file, read_lng, threads, os.getcwd())
     os.system(run_cmd)
         
     map_bin_track = np.unpackbits( np.fromfile('./Cache/GMS_track.bin', dtype = "uint8") )
@@ -78,14 +78,14 @@ if __name__ == '__main__':
             if mat_flag:
                 scipy.io.savemat('./{0}/{0}_{1}.mat'.format(project_name, record.name), mdict={'GMS': GMS})
     
-    print ('All GMS-tracks are calculated at {}.'.format(time.ctime(int(time.time()))))
+    print ('All GMS-tracks were calculated at {}.'.format(time.ctime(int(time.time()))))
         
     flag = track_write(chromosome_len, chromosome_names, chromosome_GMS, in_file, project_name, output_formats, threads, current_dir)
     
     os.system('rm -r ./Cache/') # Clear cache
 
     stop_time = time.time()
-    print('Elapsed time: ' + str(stop_time-start_time) ) 
     
-    print ('Program has finished at {}.'.format(time.ctime(int(time.time()))) )
-    print ( 'Done. See {0} directory.'.format(project_name) )
+    print ('GeMaTrIA has finished at {}.'.format(time.ctime(int(time.time()))) )
+    print ('Elapsed time: {}'.format(stop_time-start_time) ) 
+    print ('See {} directory.'.format(project_name) )

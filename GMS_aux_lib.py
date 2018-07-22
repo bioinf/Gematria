@@ -11,7 +11,7 @@ def track_make(data):
 
     chrom,reads_stat = data   
     
-    print ('Making GMS-track. Chromosome ' + chrom + '.') 
+    print ('Formatting GMS-track for chromosome {}.'.format(chrom)) 
     
     seq_lng = len( reads_stat )
     
@@ -61,7 +61,7 @@ def track_make(data):
 
     current_chr = zip(start_arr, span_arr, current_value_arr, chrom_arr)
         
-    print (str(series_counter) + ' series are found.')
+    print ('{} series were found.'.format(series_counter))
     return(current_chr)
     
 # Write data to Wig, BigWig, Bed, BigBed, Tdf file
@@ -77,7 +77,7 @@ def track_write(chromosome_len, chromosome_names, chromosome_GMS, in_file, proje
 
     # Sorting
     chromosome_len, chromosome_names, chromosome_GMS = zip(*sorted(zip(chromosome_len, chromosome_names, chromosome_GMS), reverse = True))
-    print ('Track-making was started at {}.'.format(time.ctime(int(time.time()))) )
+    print ('Tracks formatting was started at {}.'.format(time.ctime(int(time.time()))) )
 
     if threads > 1:
         pool = multiprocessing.Pool(processes= threads)
@@ -109,7 +109,7 @@ def track_write(chromosome_len, chromosome_names, chromosome_GMS, in_file, proje
     if output_formats['Bed'] or output_formats['bigBed']:
         bed_handle.close()
 
-    print ('Track-making was finished at {}.'.format(time.ctime(int(time.time()))) )
+    print ('Tracks formatting was finished at {}.'.format(time.ctime(int(time.time()))) )
 
     if output_formats['bigBed']:   
         print('Converting BED to BigBED.')
@@ -141,29 +141,48 @@ def track_write(chromosome_len, chromosome_names, chromosome_GMS, in_file, proje
         
 # Parse input arguments
 def parse_inputs(current_dir):
-    parser = argparse.ArgumentParser(description='Parser for GMS-track builder')
-    parser.add_argument('-i', '--input' , help='Input file' , metavar='Str',
-                        type=str, required=True)
-    parser.add_argument('-o', '--output'  , help='Output file', metavar='Str',
-                        type=str, required=True)
-    parser.add_argument('-l', '--read_lng', help='Read length (default 100)', metavar='Int',
+    
+    class CustomFormatter(argparse.RawTextHelpFormatter):
+        def _format_action_invocation(self, action):
+            if not action.option_strings:
+                metavar, = self._metavar_formatter(action, action.dest)(1)
+                return metavar
+            else:
+                parts = []
+                if action.nargs == 0:
+                    parts.extend(action.option_strings)
+                else:
+                    default = action.dest.upper()
+                    args_string = self._format_args(action, default)
+                    for option_string in action.option_strings:
+                        parts.append('%s' % option_string)
+                    parts[-1] += ' %s'%args_string
+                return ', '.join(parts)    
+        
+    parser = argparse.ArgumentParser(description='GeMaTrIA: genome mappability track instant analysis',formatter_class=CustomFormatter)
+    
+    parser.add_argument('-i', '--input', help='input file', metavar='', type=str, required=True)
+    parser.add_argument('-o', '--output' , help='output file', metavar='', type=str, required=True)
+    parser.add_argument('-l', '--length', help='read length (default 100)', metavar='',
                         type=int, default=100)
-    parser.add_argument('-r', '--pe', help='Reads type parameters: N:mu:sigma (for Normal distribution of insertions size) or U:a:b (for Uniform distribution of insertion size) or S (for single-end reads).',
-                        type=str, default = 'S')
-    parser.add_argument('-f', '--formats', help='List of required output formats in a way format1,format2,... etc. Supported formats are Wig, bigWig, Bed, bigBed, TDF.',
-                        type=str, default = 'bigWig')
-    parser.add_argument('-m', '--mat_file', help='Save debug data in Matlab MAT format', action='store_true')  
-    parser.add_argument('-t', '--threads', help = 'Number of threads', metavar = 'Int', type = int, default = 1)   
+    parser.add_argument('-r', '--read', help='reads type parameters: \n- N:mu:sigma for Normal distribution of insertions size \n- U:a:b for Uniform distribution of insertion size \n- S for Single-end reads (default).',
+                        type=str, metavar='', default = 'S')
+    parser.add_argument('-f', '--formats', help='list of required output formats in a way format1,format2,... etc.\nSupported formats are Wig, bigWig, Bed, bigBed, TDF, ALL (default is bigWig).',
+                        type=str, metavar='', default = 'bigWig')
+    parser.add_argument('-m', '--mat', help='save debug data in Matlab MAT format', action='store_true')  
+    parser.add_argument('-t', '--threads', help = 'number of threads', metavar = '', type = int, default = 1)   
 
     args = parser.parse_args()
     
-    print ('Checking requested formats.')
-    requirements = {'Bed':{},'bigBed':{'faSize','bedToBigBed'},'Wig':{},'bigWig':{},'TDF':{'faSize','igvtools','igvtools.jar'}}
-    ouptput_formats = {'Bed':False,'bigBed':False,'Wig':False,'bigWig':False,'TDF':False}
+    print ('Checking requested formats:')
+    requirements = {'Bed':set([]),'bigBed':{'faSize','bedToBigBed'},'Wig':set([]),'bigWig':set([]),'TDF':{'faSize','igvtools','igvtools.jar'}}
+    output_formats = {'Bed':False,'bigBed':False,'Wig':False,'bigWig':False,'TDF':False}
     
-    requested_formats = args.formats.split(',')
-    
+    requested_formats = args.formats.split(',')    
 
+    if requested_formats==['ALL']:
+        requested_formats = ['Wig','bigWig','Bed','bigBed','TDF']
+    
     if not( os.path.isdir(current_dir+'/utils') ):
         existing_utils = []
     else:
@@ -173,33 +192,33 @@ def parse_inputs(current_dir):
         if frmt == 'bigWig':
             try:
                 import pyBigWig
-                ouptput_formats[frmt] = True
-                print('pyBigWig library for bigWig was found. Will try to generate.')
+                output_formats[frmt] = True
+                print('[V] pyBigWig library for bigWig was found.')
             except:
-                print('Cannot load pyBigWig library. BigWig output will be omitted. You still can generate Wig file and then convert it with UCSC wigToBigWig utility manually.')
+                print('[X] Cannot load pyBigWig library. BigWig output will be omitted. You still can generate Wig file and then convert it with UCSC wigToBigWig utility manually.')
             continue             
 
         if frmt in requirements:
             if requirements[frmt].issubset(existing_utils):
-                ouptput_formats[frmt] = True
-                print('Utilities for {} are found. Will try to generate.'.format(frmt))
+                output_formats[frmt] = True
+                print('[V] Utilities for {} were found.'.format(frmt))
             else:
-                print('Utilities for {} weren\'t found. Will be ignored.'.format(frmt))                
+                print('[X] Utilities for {} weren\'t found. Will be ignored.'.format(frmt))                
         else:
-            print ('Format {} is unsupported. Will be ignored.'.format(frmt))
+            print ('[X] Format {} is unsupported. Will be ignored.'.format(frmt))
     
-    if not reduce((lambda x,y: x or y),ouptput_formats.values()):
+    if not reduce((lambda x,y: x or y),output_formats.values()):
         print ('There is no output formats available.')
         sys.exit()
         
-    print ('Checking reads paramters.')
+    print ('Checking reads parameters: ',end="")
     pe_correctness_flag = False
     insertion_size = {'reads_type':'','param1':0,'param2':0}
-    if args.pe == 'S':
+    if args.read == 'S':
         insertion_size['reads_type'] = 'S'
         pe_correctness_flag = True
     else:
-        tmp = args.pe.split(':')
+        tmp = args.read.split(':')
         if (len(tmp) == 3) and (tmp[0] in {'U','N'}):
             try:
                 x = int(tmp[1])
@@ -213,7 +232,9 @@ def parse_inputs(current_dir):
                 pe_correctness_flag = True
         
     if not pe_correctness_flag:
-        print('Reads type is wrong (see help for explanations).')
+        print('\nReads type is wrong (see help for explanations).')
         sys.exit()
+    else:
+        print('ok')        
         
-    return args.input, args.output, args.read_lng, insertion_size, ouptput_formats, args.mat_file, args.threads
+    return args.input, args.output, args.length, insertion_size, output_formats, args.mat, args.threads
