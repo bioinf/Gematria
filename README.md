@@ -43,7 +43,7 @@ GeMaTrIA<br/>
 
 ## Installation
 
-Just clone this GitHub project and download extra utilities if required (see section **Requirements**)
+Just clone this GitHub project and download extra utilities if required (see section **Requirements**). Check, that file makeRawGMS has permissions to be executed (`chmod u+x makeRawGMS`).
 
 ## Tool options 
 
@@ -56,7 +56,7 @@ Arguments:
 *  `-o, --output`   Prefix of output files generated with GeMaTrIA.
 *  `-l, --length`   Read length (default is 100).
 *  `-r, --read`     Reads type parameters in the following format: S (for single-end reads) **or** N:mu:sigma (for Normal distribution of insertions size) **or** U:min:max (for Uniform distribution of insertion size). Default is a single-end mode.
-*  `-f, --formats`  List of required output formats separated with commas (**without spaces**), e.g. format1,format2,... etc. Supported formats are Wig, bigWig, Bed, bigBed, TDF. Default is bigWig.
+*  `-f, --formats`  List of required output formats separated with commas (**without spaces**), e.g. format1,format2,... etc. Supported formats are Wig, bigWig, Bed, bigBed, TDF, ALL (for generation of track in all available formats). Default is bigWig.
 *  `-m, --mat`      Save debug data in Matlab MAT format.
 *  `-t, --threads`  Number of threads (**please, note, that multithreading for large genomes is still under debugging**).
 
