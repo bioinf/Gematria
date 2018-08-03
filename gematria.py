@@ -4,6 +4,7 @@ import sys
 import time
 import numpy as np
 import scipy.io
+import makegms
 import os
 from math import sqrt, pi, exp
 from Bio import SeqIO
@@ -26,9 +27,10 @@ if __name__ == '__main__':
    
     if not( os.path.isdir("./{}".format(project_name)) ):
         os.system('mkdir {}'.format(project_name))
-        
-    run_cmd = "{0}/makeRawGMS {1} {2} {3} {4}".format(current_dir, in_file, read_lng, threads, os.getcwd())
-    os.system(run_cmd)
+    
+    makegms.run(in_file, read_lng, os.getcwd(), threads)
+    #run_cmd = "{0}/makeRawGMS {1} {2} {3} {4}".format(current_dir, in_file, read_lng, threads, os.getcwd())
+    #os.system(run_cmd)
         
     map_bin_track = np.unpackbits( np.fromfile('./Cache/GMS_track.bin', dtype = "uint8") )
     
