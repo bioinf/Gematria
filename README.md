@@ -1,20 +1,73 @@
-# GeMaTrIA
-This project is devoted to development of fast and easy tool for Genome Mappability Track Instant Analysis (GeMaTrIA).
+# Gematria
+> Genome Mappability Track Instant Analysis
 
 ## What is mappability?
 
-Mappability is a genome-wide function showing if a region in a genome could be identified unambiguously using a read of a particular length. This function typically ranges between 0 and 100. If exact genome subsequence may be found in more than one location, then the mappability in that location of the genome is set to zero. Otherwise, if the subsequence is unique, mappabity is close to 100.
+Mappability is a genome-wide function showing if a region in a genome could be 
+identified unambiguously using a read of a particular length. This function 
+typically ranges between 0 and 100. If exact genome subsequence may be found 
+in more than one location, then the mappability in that location of the genome 
+is set to zero. Otherwise, if the subsequence is unique, mappabity is close to 
+100.
 
-Obviously, mappability depends on read length (the more read length the more unambiguous locus is), and insertion size for paired-end reads (growing of insertion size improves mappability as well).
+Obviously, mappability depends on read length (the more read length the more 
+unambiguous locus is), and insertion size for paired-end reads (growing of 
+insertion size improves mappability as well).
+
+## Quick Start
+
+### Installation
+
+```bash
+pip install makegms numpy pyBigWig
+curl https://raw.githubusercontent.com/evgeny-bakin/GeMaTrIA/gematria.standalone.py > gematria.py
+chmod +x gematria.py
+```
+
+### Usage
+
+```bash
+./gematria.py [fasta file] [Optional arguments]
+```
+
+### Optional arguments
+
+```bash
+-i, --input    Path to `genome.fasta` file
+-l, --length   Read length. Default: 100
+-t, --threads  Number of threads. Default: autodetect
+-o, --output   Output filename with an extension wig, bw or bed
+-r, --reads    Reads type parameters in the following format:
+               S - for single-end reads
+               N:mu:sigma - for Normal distribution of insertion size
+               U:min:max - for Uniform distribution of insertion size
+-h, --help     Show this help
+```
+
+### Examples:
+
+```bash
+# Run of Gematria for 100bp single-end reads with a result saving in a wig format:
+./gematria.py input.fasta
+
+# .. Result saving in a bigWig file:
+./gematria.py -i input.fasta -o result.bw
+
+# Calculate mappability for 35bp paired-end reads with 200..300bp insertion size:
+./gematria.py input.fasta -l 35 -r U:200:300
+
+```
 
 ## Requirements
 
-GeMaTrIA interface part was developed via Python 3 (scripts _gematria.py_ and _GMS_aux_lib.py_) while the most computationally-consuming algorithms were implemented in C (_makeRawGMS_).
+Gematria interface part was developed via Python 3 (scripts gematria.py for developing and gematria.standalone.py for production) while the most computationally-consuming algorithms were implemented in C (`makegms`).
+The following set of extra Python libraries are required (in brackets we give the versions of the libraries for which our tool was tested): `numpy`
 
-The following set of extra Python libraries are required (in brackets we give the versions of the libraries for which our tool was tested):
-* numpy (1.10.4)
-* biopython (1.68)
-* scipy (0.17.1)
+---
+
+[edit]
+
+---
 
 Out of the box it can produce output files with a mappability track in two formats: Wig and Bed (in the latter case a mappability will be represented with a color intensity). However a user may enhance capabilites of GeMaTrIA output generation in the following way:
 
