@@ -1,7 +1,7 @@
 class Write():
     wig = "fixedStep chrom={0} start={1} step=1 span={2}\n{3}\n"
     bed = "{0}\t{1}\t{2}\t.\t{3}\t.\t{1}\t{2}\t{4}\n"
-    stp = -1
+    stp = ['', -1]
 
     def __init__(self, file, fasta):
         output, self.ext = file
@@ -22,9 +22,9 @@ class Write():
 
     # ----------------------------------------------------------------------- #
     def _wig(self, chr, pos, span, val):
-        if span == self.stp:
+        if [span, chr] == self.stp:
             return self.h.write(str(val) + "\n")
-        self.stp = span
+        self.stp = [span, chr]
         self.h.write(self.wig.format(chr, pos, span, val))
 
     def _bed(self, chr, pos, span, val):
