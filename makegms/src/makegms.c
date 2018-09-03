@@ -15,7 +15,7 @@ makegms_run(PyObject *self, PyObject *args, PyObject *keywds)
     static char * kwlist[] = {"src", "read", "threads", NULL};
     if (!PyArg_ParseTupleAndKeywords(args, keywds, "si|i", kwlist,
                                      &src, &read_length, &threads)) return NULL;
-    /* ---------------------------------------------------------------------- */
+    /* --------------------------------------------------------------------- */
 
     readGenome(src);
     
@@ -35,11 +35,11 @@ makegms_run(PyObject *self, PyObject *args, PyObject *keywds)
     free(thread);
     free(parts);
     free(seq->sequence);
-    /* ---------------------------------------------------------------------- */
+    /* --------------------------------------------------------------------- */
 
     PyObject *l = PyList_New(seq->size);
     for (num i = 0; i != seq->size; ++i) {
-        PyList_SetItem(l, i, Py_BuildValue("i", seq->counts[i] > 1 ? 1 : 0));
+        PyList_SetItem(l, i, Py_BuildValue("i", seq->counts[i] > 1 ? 0 : 1));
     }
 
     free(seq->counts);

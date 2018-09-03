@@ -2,7 +2,7 @@ from setuptools import setup, Extension
 
 setup(
     name = 'makegms',
-    version = '0.2.1',
+    version = '1.1.0',
     description = 'Fast and easy tool for genome mappability estimation',
     url = "https://github.com/evgeny-bakin/GeMaTrIA",
     author = 'Igor V.',
