@@ -60,8 +60,8 @@ chmod +x gematria.py
 
 ## Installation without a superuser
 
-If you are on a shared server, and you do not have root access, you can 
-locally install the python and the required extensions as follows:
+if you are working on a shared server, and you do not have root access, you 
+can locally install the python and the required extensions as follows:
 
 ```bash
 # Python
