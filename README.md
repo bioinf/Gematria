@@ -20,7 +20,7 @@ insertion size improves mappability as well).
 
 ```bash
 pip install makegms numpy pyBigWig
-https://raw.githubusercontent.com/evgeny-bakin/GeMaTrIA/master/gematria.standalone.py > gematria.py
+curl https://raw.githubusercontent.com/evgeny-bakin/GeMaTrIA/master/gematria.standalone.py > gematria.py
 chmod +x gematria.py
 ```
 
@@ -51,11 +51,33 @@ chmod +x gematria.py
 ./gematria.py input.fasta
 
 # .. Result saving in a bigWig file:
-./gematria.py -i input.fasta -o result.bw
+./gematria.py -i test/ecoli.fasta -o result.bw
 
 # Calculate mappability for 35bp paired-end reads with 200..300bp insertion size:
 ./gematria.py input.fasta -l 35 -r U:200:300
 
+```
+
+## Installation without a superuser
+
+If you are on a shared server, and you do not have root access, you can 
+locally install the python and the required extensions as follows:
+
+```bash
+# Python
+git clone https://github.com/python/cpython.git
+cd cpython && ./configure --with-pydebug && make -j
+
+# Pip
+wget https://bootstrap.pypa.io/get-pip.py
+./cpython/python get-pip.py --user
+
+# Packages
+./cpython/python .local/bin/pip3.8 install makegms numpy pyBigWig --user
+
+# Gematria
+curl https://raw.githubusercontent.com/evgeny-bakin/GeMaTrIA/master/gematria.standalone.py > gematria.py
+./cpython/python gematria.py
 ```
 
 ## Requirements
