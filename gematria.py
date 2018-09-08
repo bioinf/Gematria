@@ -13,7 +13,7 @@ track = makegms.run(app.argx['input'],
                     read=app.argx['length'],
                     threads=int(app.argx['threads']))
 
-h = Write([file, ext], fasta)
+fs = Write([file, ext], fasta)
 i = 0
 
 for chr, lng in fasta:
@@ -28,4 +28,6 @@ for chr, lng in fasta:
     final = subseq + (np.ones(reads) - subseq) * (left + right) / 2
     gms = np.convolve(final, [100/app.argx['length']] * app.argx['length'])
 
-    h.add(chr, np.append(np.round(gms), [-1]))
+    fs.add(chr, np.append(np.round(gms), [-1]))
+
+fs.h.close()
