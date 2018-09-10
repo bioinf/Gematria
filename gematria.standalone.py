@@ -201,6 +201,10 @@ def download(src, dst, iexec=False):
 
 def check_exe(root):
     root = os.path.dirname(os.path.abspath(root))
+    
+    exec_dir = root + '/exe'
+    if not os.path.exists(exec_dir):
+        os.makedirs(exec_dir)
 
     ucsc = "http://hgdownload.cse.ucsc.edu/admin/exe/"
     bed2bigbed = "{root}/exe/bedToBigBed".format(root=root)
