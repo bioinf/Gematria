@@ -8,7 +8,9 @@ args = [
   ['-i', '--input', 'Path to `genome.fasta` file'],
   ['-l', '--length', 'Read length. Default: 100'],
   ['-t', '--threads', 'Number of threads. Default: auto'],
-  ['-o', '--output', 'Output filename with an extension wig, bw or bed'],
+  ['-o', '--output', 'Output filenames without extension'],
+  ['-f', '--formats', 'Comma separated output formats',
+                      'Acceptable formats: wig, bigwig, bed, tdf, bigbed'],
   ['-r', '--reads', 'Reads type parameters in the following format:',
                     'S - for single-end reads',
                     'N:mu:sigma - for Normal distribution of insertion size',
@@ -16,7 +18,7 @@ args = [
   ['-h', '--help', 'Show this help']]
 demo = [
   'input.fasta',
-  'input.fasta -l 35 -t 4 -o result.bed -r U:0:80',
+  'input.fasta -l 35 -t 4 -o result -f bed,tdf -r U:0:80',
   '-i input.fasta -l 50',
   '-i input.fasta -r N:40:20']
 
@@ -27,17 +29,21 @@ app.default('input', sys.argv[1])
 if not os.path.isfile(app.argx['input']):
     app.exit('Input file not found: ' + app.argx['input'])
 
-app.default('output', app.argx['input'] + '.wig')
-file, ext = os.path.splitext(app.argx['output'])
-ext = ext[1:]
-if ext not in ['wig', 'bw', 'bed']:
-    ext = 'wig'
-if ext == 'bw':
+app.default('output', app.argx['input'])
+app.default('formats', 'wig')
+
+outputs = {}
+for ext in app.argx['formats'].split(','):
+    ext = ext.replace('bigwig', 'bw')
+    if ext not in ['wig', 'bed', 'tdf', 'bw', 'bigbed']:
+        continue
+    outputs[ext] = app.argx['output'] + '.' + ext
+
+if 'wig' in outputs:
     try:
-        __import__('imp').find_module('pyBigWig')
+        import pyBigWig as bw
     except ImportError:
         stop('Python module pyBigWig not found')
-    import pyBigWig as bw
 
 app.default('reads', 'S')
 try:
@@ -70,3 +76,60 @@ except:
 app.default('threads', os.sysconf('SC_NPROCESSORS_ONLN'))
 app.default('length', 100)
 app.argx['length'] = int(app.argx['length'])
+
+
+# --------------------------------------------------------------------------- #
+def download(src, dst, iexec=False):
+    import urllib.request
+
+    app.log('Downloading: ' + src)
+    res = urllib.request.urlopen(src)
+    with open(dst, 'wb') as output:
+        output.write(res.read())
+
+    if os.path.isfile(dst):
+        app.success_log('Download complete: ' + dst)
+        if iexec:
+            import stat
+            os.chmod(dst, os.stat(dst).st_mode | stat.S_IEXEC)
+        return True
+
+    app.error_log('Download error: ' + dst)
+    return False
+
+
+def check_exe(root):
+    root = os.path.dirname(os.path.abspath(root))
+
+    ucsc = "http://hgdownload.cse.ucsc.edu/admin/exe/"
+    bed2bigbed = "{root}/exe/bedToBigBed".format(root=root)
+
+    if sys.platform == "darwin":
+        src = ucsc + "macOSX.x86_64/bedToBigBed"
+        bed2bigbed += "_darwin"
+
+    if sys.platform == "linux":
+        src = ucsc + "linux.x86_64/bedToBigBed"
+        bed2bigbed += "_linux"
+
+    if 'bigbed' in outputs:
+        if os.path.isfile(bed2bigbed) and os.access(bed2bigbed, os.X_OK):
+            app.success_log('Executable `bedToBigBed` found')
+        else:
+            app.error_log('Executable `bedToBigBed` not found')
+            if not download(src, bed2bigbed, True):
+                del(outputs['bigbed'])
+
+    repo = "https://github.com/evgeny-bakin/GeMaTrIA/"
+    igvtools = "{root}/exe/igvtools.jar".format(root=root)
+    src = repo + "raw/master/exe/igvtools.jar"
+
+    if 'tdf' in outputs:
+        if os.path.isfile(igvtools):
+            app.success_log('Executable `igvtools` found')
+        else:
+            app.error_log('Executable `igvtools` not found')
+            if not download(src, igvtools):
+                del(outputs['tdf'])
+
+    return [igvtools, bed2bigbed]

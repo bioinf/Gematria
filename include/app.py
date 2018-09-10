@@ -43,6 +43,17 @@ class App():
           'green_bold': "\033[1;32m{0}\033[0m"
         }[color].format(text))
 
+    def log(self, text, prefix='    '):
+        self.echo(prefix + text + '\n', 'green')
+
+    def error_log(self, text, prefix='[-] '):
+        self.echo(prefix, 'red_bold')
+        self.echo(text + '\n', 'red')
+
+    def success_log(self, text, prefix='[+] '):
+        self.echo(prefix, 'green_bold')
+        self.echo(text + '\n', 'green')
+
     def params(self, items):
         space = max([len(name) for name, desc in items]) + 1
         for name, desc in items:
