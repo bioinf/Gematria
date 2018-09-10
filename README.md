@@ -35,8 +35,10 @@ chmod +x gematria.py
 ```bash
 -i, --input    Path to `genome.fasta` file
 -l, --length   Read length. Default: 100
--t, --threads  Number of threads. Default: autodetect
--o, --output   Output filename with an extension wig, bw or bed
+-t, --threads  Number of threads. Default: auto
+-o, --output   Output filenames without extension
+-f, --formats  Comma separated output formats
+               Acceptable formats: wig, bigwig, bed, tdf, bigbed
 -r, --reads    Reads type parameters in the following format:
                S - for single-end reads
                N:mu:sigma - for Normal distribution of insertion size
@@ -51,11 +53,10 @@ chmod +x gematria.py
 ./gematria.py input.fasta
 
 # .. Result saving in a bigWig file:
-./gematria.py -i test/ecoli.fasta -o result.bw
+./gematria.py -i test/ecoli.fasta -o result -f bw,bed,tdf
 
 # Calculate mappability for 35bp paired-end reads with 200..300bp insertion size:
-./gematria.py input.fasta -l 35 -r U:200:300
-
+./gematria.py -i input.fasta -l 35 -r U:200:300
 ```
 
 ## Installation without a superuser
