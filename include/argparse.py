@@ -83,9 +83,7 @@ def download(src, dst, iexec=False):
     import urllib.request
 
     app.log('Downloading: ' + src)
-    res = urllib.request.urlopen(src)
-    with open(dst, 'wb') as output:
-        output.write(res.read())
+    os.system("curl -s {0} > {1}".format(src, dst))
 
     if os.path.isfile(dst):
         app.success_log('Download complete: ' + dst)
@@ -124,9 +122,9 @@ def check_exe(root):
             if not download(src, bed2bigbed, True):
                 del(outputs['bigbed'])
 
-    repo = "https://github.com/evgeny-bakin/GeMaTrIA/"
+    repo = "https://raw.githubusercontent.com/evgeny-bakin/GeMaTrIA/"
     igvtools = "{root}/exe/igvtools.jar".format(root=root)
-    src = repo + "raw/master/exe/igvtools.jar"
+    src = repo + "master/exe/igvtools.jar"
 
     if 'tdf' in outputs:
         if os.path.isfile(igvtools):

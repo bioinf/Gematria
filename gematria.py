@@ -1,24 +1,33 @@
 #!/usr/bin/env python3
 import os
+import time
 
 import makegms
 import numpy as np
+
+started = time.time()
 
 from include.argparse import *
 from include.getcontents import *
 from include.write import *
 
 # --------------------------------------------------------------------------- #
-app.log('Gematria: Initialization')
+app.intro()
 igvtools, bed2bigbed = check_exe(__file__)
 
+begin = time.time()
 app.log('Get contents of fasta file: ' + app.argx['input'])
 fasta = getcontents(app.argx['input'])
+app.success_log('File loaded: {0:.2f}sec.'.format(time.time()-begin))
 
+
+begin = time.time()
 app.log('Making raw GMS-track')
 track = makegms.run(app.argx['input'],
                     read=app.argx['length'],
                     threads=int(app.argx['threads']))
+app.success_log('GMS-track is created: {0:.2f}sec.'.format(time.time()-begin))
+
 
 fs = {}
 for k in outputs:
@@ -36,7 +45,9 @@ if 'bigbed' in outputs and 'bed' not in fs:
 app.log('Splitting raw GMS-track to chromosomes')
 i = 0
 for chr, lng in fasta:
-    app.log(chr, ' >  Chr: ')
+    begin = time.time()
+    app.echo(' #  Chr: ' + chr, 'green')
+    
     reads = lng - app.argx['length'] + 1
     subseq = track[i:i+reads]
     i += lng
@@ -51,6 +62,8 @@ for chr, lng in fasta:
     for key in fs:
         fs[key].add(chr, np.append(np.round(gms), [-1]))
 
+    app.echo(' [{0:.2f}sec.]\n'.format(time.time()-begin), 'green_bold')
+
 for key in fs:
     fs[key].h.close()
 
@@ -63,6 +76,7 @@ if 'tdf' in outputs or 'bigbed' in outputs:
         output.write('\n'.join(data))
 
 if 'tdf' in outputs:
+    begin = time.time()
     app.log('Converting wig to tdf')
 
     os.system((' ').join([
@@ -75,8 +89,11 @@ if 'tdf' in outputs:
     os.remove('igv.log')
     if fs['wig'].h.name[0] == '.':
         os.remove(fs['wig'].h.name)
+    
+    app.success_log('Done: {0:.2f}sec.'.format(time.time()-begin))
 
 if 'bigbed' in outputs:
+    begin = time.time()
     app.log('Converting bed to bigbed')
 
     os.system((' ').join([
@@ -95,8 +112,10 @@ if 'bigbed' in outputs:
         os.remove(fs['bed'].h.name)
         os.remove(fs['bed'].h.name + '.sorted')
 
+    app.success_log('Done: {0:.2f}sec.'.format(time.time()-begin))
+
 if sizes:
     os.remove(sizes)
     
-
-app.success_log('Done')
+app.echo('\nGematria has finished.\nElapsed time: ', 'white_bold')
+app.echo('{0:.2f}sec.\n'.format(time.time()-started), 'white_bold')

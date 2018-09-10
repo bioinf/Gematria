@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 import os
+import time
 
 import makegms
 import numpy as np
+
+started = time.time()
 
 # --------------------------------------------------------------------------- #
 # filename: include/argparse.py
@@ -56,6 +59,7 @@ class App():
           'red': "\033[31m{0}\033[0m",
           'green': "\033[32m{0}\033[0m",
           'white': "\033[37m{0}\033[0m",
+          'white_bold': "\033[1;37m{0}\033[0m",
           'red_bold': "\033[1;31m{0}\033[0m",
           'green_bold': "\033[1;32m{0}\033[0m"
         }[color].format(text))
@@ -103,6 +107,13 @@ class App():
             self.params(self.demo)
 
         sys.exit(1 if cause else 0)
+
+    def intro(self):
+        self.echo('Gematria\nCommand executed:\n', 'white_bold')
+        self.echo('{app}'.format(app=sys.argv[0]), 'white')
+        for nm in ['input', 'output', 'formats', 'length', 'threads', 'reads']:
+            self.echo(" --{0} {1}".format(nm, self.argx[nm]), 'white')
+        self.echo('\n\n')
 
 init = '[fasta file] [Optional arguments]'
 args = [
@@ -184,9 +195,7 @@ def download(src, dst, iexec=False):
     import urllib.request
 
     app.log('Downloading: ' + src)
-    res = urllib.request.urlopen(src)
-    with open(dst, 'wb') as output:
-        output.write(res.read())
+    os.system("curl -s {0} > {1}".format(src, dst))
 
     if os.path.isfile(dst):
         app.success_log('Download complete: ' + dst)
@@ -225,9 +234,9 @@ def check_exe(root):
             if not download(src, bed2bigbed, True):
                 del(outputs['bigbed'])
 
-    repo = "https://github.com/evgeny-bakin/GeMaTrIA/"
+    repo = "https://raw.githubusercontent.com/evgeny-bakin/GeMaTrIA/"
     igvtools = "{root}/exe/igvtools.jar".format(root=root)
-    src = repo + "raw/master/exe/igvtools.jar"
+    src = repo + "master/exe/igvtools.jar"
 
     if 'tdf' in outputs:
         if os.path.isfile(igvtools):
@@ -317,16 +326,22 @@ class Write():
             repeats_init = i + 1
 
 # --------------------------------------------------------------------------- #
-app.log('Gematria: Initialization')
+app.intro()
 igvtools, bed2bigbed = check_exe(__file__)
 
+begin = time.time()
 app.log('Get contents of fasta file: ' + app.argx['input'])
 fasta = getcontents(app.argx['input'])
+app.success_log('File loaded: {0:.2f}sec.'.format(time.time()-begin))
 
+
+begin = time.time()
 app.log('Making raw GMS-track')
 track = makegms.run(app.argx['input'],
                     read=app.argx['length'],
                     threads=int(app.argx['threads']))
+app.success_log('GMS-track is created: {0:.2f}sec.'.format(time.time()-begin))
+
 
 fs = {}
 for k in outputs:
@@ -344,7 +359,9 @@ if 'bigbed' in outputs and 'bed' not in fs:
 app.log('Splitting raw GMS-track to chromosomes')
 i = 0
 for chr, lng in fasta:
-    app.log(chr, ' >  Chr: ')
+    begin = time.time()
+    app.echo(' #  Chr: ' + chr, 'green')
+    
     reads = lng - app.argx['length'] + 1
     subseq = track[i:i+reads]
     i += lng
@@ -359,6 +376,8 @@ for chr, lng in fasta:
     for key in fs:
         fs[key].add(chr, np.append(np.round(gms), [-1]))
 
+    app.echo(' [{0:.2f}sec.]\n'.format(time.time()-begin), 'green_bold')
+
 for key in fs:
     fs[key].h.close()
 
@@ -371,6 +390,7 @@ if 'tdf' in outputs or 'bigbed' in outputs:
         output.write('\n'.join(data))
 
 if 'tdf' in outputs:
+    begin = time.time()
     app.log('Converting wig to tdf')
 
     os.system((' ').join([
@@ -383,8 +403,11 @@ if 'tdf' in outputs:
     os.remove('igv.log')
     if fs['wig'].h.name[0] == '.':
         os.remove(fs['wig'].h.name)
+    
+    app.success_log('Done: {0:.2f}sec.'.format(time.time()-begin))
 
 if 'bigbed' in outputs:
+    begin = time.time()
     app.log('Converting bed to bigbed')
 
     os.system((' ').join([
@@ -403,8 +426,10 @@ if 'bigbed' in outputs:
         os.remove(fs['bed'].h.name)
         os.remove(fs['bed'].h.name + '.sorted')
 
+    app.success_log('Done: {0:.2f}sec.'.format(time.time()-begin))
+
 if sizes:
     os.remove(sizes)
     
-
-app.success_log('Done')
+app.echo('\nGematria has finished.\nElapsed time: ', 'white_bold')
+app.echo('{0:.2f}sec.\n'.format(time.time()-started), 'white_bold')

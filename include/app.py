@@ -39,6 +39,7 @@ class App():
           'red': "\033[31m{0}\033[0m",
           'green': "\033[32m{0}\033[0m",
           'white': "\033[37m{0}\033[0m",
+          'white_bold': "\033[1;37m{0}\033[0m",
           'red_bold': "\033[1;31m{0}\033[0m",
           'green_bold': "\033[1;32m{0}\033[0m"
         }[color].format(text))
@@ -86,3 +87,10 @@ class App():
             self.params(self.demo)
 
         sys.exit(1 if cause else 0)
+
+    def intro(self):
+        self.echo('Gematria\nCommand executed:\n', 'white_bold')
+        self.echo('{app}'.format(app=sys.argv[0]), 'white')
+        for nm in ['input', 'output', 'formats', 'length', 'threads', 'reads']:
+            self.echo(" --{0} {1}".format(nm, self.argx[nm]), 'white')
+        self.echo('\n\n')
