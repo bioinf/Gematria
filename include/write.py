@@ -3,22 +3,21 @@ class Write():
     bed = "{0}\t{1}\t{2}\t.\t{3}\t.\t{1}\t{2}\t{4}\n"
     stp = ['', -1]
 
-    def __init__(self, name, ext, fasta):
+    def __init__(self, name, ext):
         self.ext = ext
         init = getattr(self, 'init_' + self.ext)
-        init(name, fasta)
+        init(name)
 
     # ----------------------------------------------------------------------- #
-    def init_wig(self, f, fasta):
+    def init_wig(self, f):
         self.h = open(f, 'w')
 
-    def init_bed(self, f, fasta):
+    def init_bed(self, f):
         self.h = open(f, 'w')
 
-    def init_bw(self, f, fasta):
+    def init_bw(self, f):
         import pyBigWig as bw
         self.h = bw.open(f, 'w')
-        self.h.addHeader([(chr, lng) for chr, lng in fasta])
 
     # ----------------------------------------------------------------------- #
     def _wig(self, chr, pos, span, val):

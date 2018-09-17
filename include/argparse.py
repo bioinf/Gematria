@@ -1,5 +1,5 @@
-import os
 import sys
+import os
 
 from include.app import *
 
@@ -33,7 +33,8 @@ app.default('output', app.argx['input'])
 app.default('formats', 'wig')
 
 outputs = {}
-for ext in app.argx['formats'].split(','):
+exts = app.argx['formats'].lower().replace('all', 'wig,bed,tdf,bw,bigbed')
+for ext in exts.split(','):
     ext = ext.replace('bigwig', 'bw')
     if ext not in ['wig', 'bed', 'tdf', 'bw', 'bigbed']:
         continue

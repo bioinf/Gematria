@@ -1,8 +1,22 @@
 import sys
 
 
+class Unbuffered(object):
+   def __init__(self, stream):
+       self.stream = stream
+   def write(self, data):
+       self.stream.write(data)
+       self.stream.flush()
+   def writelines(self, datas):
+       self.stream.writelines(datas)
+       self.stream.flush()
+   def __getattr__(self, attr):
+       return getattr(self.stream, attr)
+
+
 class App():
     def __init__(self, init="", args=[], demo=[]):
+        self.stderr = Unbuffered(sys.stderr)
         self.init = init
         self.demo = [[sys.argv[0], e] for e in demo]
         self.parse(args)
@@ -25,7 +39,7 @@ class App():
             self.exit('Kio okazas? (Specify arguments. Please)')
 
         if argv[1] == 'help':
-            self.exit()
+            self.exit(0)
 
         first = -1 * len(argv) % 2
         for i in range(0, len(argv) - 1, 2):
@@ -33,8 +47,39 @@ class App():
             if k in self.argx:
                 self.argx[k] = v
 
+    def intro(self):
+        self.echo('Gematria\nCommand executed:\n', 'white_bold')
+        self.echo('{app}'.format(app=sys.argv[0]), 'white')
+        for nm in ['input', 'output', 'formats', 'length', 'threads', 'reads']:
+            self.echo(" --{0} {1}".format(nm, self.argx[nm]), 'white')
+        self.echo('\n\n')
+        
+    def fasta(self):
+        chr = ['', 0]
+        _fasta = []
+    
+        with open(self.argx['input'], 'r') as f:
+            for line in f:
+                line = line.replace('\n', '')
+                if line == "":
+                    continue
+                if line[0] == '>':
+                    if chr[1] > 0:
+                        _fasta.append(chr)
+                    chr = [line[1:], 0]
+                else:
+                    chr[1] += len(line)
+            _fasta.append(chr)
+        
+        sizes = [lng for chr, lng in _fasta]
+        names = [chr for chr, lng in _fasta]
+        short = [chr.split(' ')[0] for chr, lng in _fasta]
+
+        lng, chr, name = zip(*sorted(zip(sizes, short, names), reverse=True))
+        return list(zip(chr, lng, name))
+
     def echo(self, text, color=""):
-        sys.stderr.write({
+        self.stderr.write({
           '': "{0}",
           'red': "\033[31m{0}\033[0m",
           'green': "\033[32m{0}\033[0m",
@@ -88,9 +133,3 @@ class App():
 
         sys.exit(1 if cause else 0)
 
-    def intro(self):
-        self.echo('Gematria\nCommand executed:\n', 'white_bold')
-        self.echo('{app}'.format(app=sys.argv[0]), 'white')
-        for nm in ['input', 'output', 'formats', 'length', 'threads', 'reads']:
-            self.echo(" --{0} {1}".format(nm, self.argx[nm]), 'white')
-        self.echo('\n\n')

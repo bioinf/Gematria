@@ -5,14 +5,13 @@ import time
 import makegms
 import numpy as np
 
-started = time.time()
 
 # --------------------------------------------------------------------------- #
 # filename: include/argparse.py
 
 
-import os
 import sys
+import os
 
 # --------------------------------------------------------------------------- #
 # filename: include/app.py
@@ -21,8 +20,22 @@ import sys
 import sys
 
 
+class Unbuffered(object):
+   def __init__(self, stream):
+       self.stream = stream
+   def write(self, data):
+       self.stream.write(data)
+       self.stream.flush()
+   def writelines(self, datas):
+       self.stream.writelines(datas)
+       self.stream.flush()
+   def __getattr__(self, attr):
+       return getattr(self.stream, attr)
+
+
 class App():
     def __init__(self, init="", args=[], demo=[]):
+        self.stderr = Unbuffered(sys.stderr)
         self.init = init
         self.demo = [[sys.argv[0], e] for e in demo]
         self.parse(args)
@@ -45,7 +58,7 @@ class App():
             self.exit('Kio okazas? (Specify arguments. Please)')
 
         if argv[1] == 'help':
-            self.exit()
+            self.exit(0)
 
         first = -1 * len(argv) % 2
         for i in range(0, len(argv) - 1, 2):
@@ -53,8 +66,39 @@ class App():
             if k in self.argx:
                 self.argx[k] = v
 
+    def intro(self):
+        self.echo('Gematria\nCommand executed:\n', 'white_bold')
+        self.echo('{app}'.format(app=sys.argv[0]), 'white')
+        for nm in ['input', 'output', 'formats', 'length', 'threads', 'reads']:
+            self.echo(" --{0} {1}".format(nm, self.argx[nm]), 'white')
+        self.echo('\n\n')
+        
+    def fasta(self):
+        chr = ['', 0]
+        _fasta = []
+    
+        with open(self.argx['input'], 'r') as f:
+            for line in f:
+                line = line.replace('\n', '')
+                if line == "":
+                    continue
+                if line[0] == '>':
+                    if chr[1] > 0:
+                        _fasta.append(chr)
+                    chr = [line[1:], 0]
+                else:
+                    chr[1] += len(line)
+            _fasta.append(chr)
+        
+        sizes = [lng for chr, lng in _fasta]
+        names = [chr for chr, lng in _fasta]
+        short = [chr.split(' ')[0] for chr, lng in _fasta]
+
+        lng, chr, name = zip(*sorted(zip(sizes, short, names), reverse=True))
+        return list(zip(chr, lng, name))
+
     def echo(self, text, color=""):
-        sys.stderr.write({
+        self.stderr.write({
           '': "{0}",
           'red': "\033[31m{0}\033[0m",
           'green': "\033[32m{0}\033[0m",
@@ -108,12 +152,6 @@ class App():
 
         sys.exit(1 if cause else 0)
 
-    def intro(self):
-        self.echo('Gematria\nCommand executed:\n', 'white_bold')
-        self.echo('{app}'.format(app=sys.argv[0]), 'white')
-        for nm in ['input', 'output', 'formats', 'length', 'threads', 'reads']:
-            self.echo(" --{0} {1}".format(nm, self.argx[nm]), 'white')
-        self.echo('\n\n')
 
 init = '[fasta file] [Optional arguments]'
 args = [
@@ -145,7 +183,8 @@ app.default('output', app.argx['input'])
 app.default('formats', 'wig')
 
 outputs = {}
-for ext in app.argx['formats'].split(','):
+exts = app.argx['formats'].lower().replace('all', 'wig,bed,tdf,bw,bigbed')
+for ext in exts.split(','):
     ext = ext.replace('bigwig', 'bw')
     if ext not in ['wig', 'bed', 'tdf', 'bw', 'bigbed']:
         continue
@@ -248,28 +287,6 @@ def check_exe(root):
 
     return [igvtools, bed2bigbed]
 # --------------------------------------------------------------------------- #
-# filename: include/getcontents.py
-
-
-def getcontents(filename):
-    chr = ['', 0]
-    fasta = []
-
-    with open(filename, 'r') as f:
-        for line in f:
-            line = line.replace('\n', '')
-            if line == "":
-                continue
-            if line[0] == '>':
-                if chr[1] > 0:
-                    fasta.append(chr)
-                chr = [line[1:], 0]
-            else:
-                chr[1] += len(line)
-        fasta.append(chr)
-
-    return fasta
-# --------------------------------------------------------------------------- #
 # filename: include/write.py
 
 
@@ -278,22 +295,21 @@ class Write():
     bed = "{0}\t{1}\t{2}\t.\t{3}\t.\t{1}\t{2}\t{4}\n"
     stp = ['', -1]
 
-    def __init__(self, name, ext, fasta):
+    def __init__(self, name, ext):
         self.ext = ext
         init = getattr(self, 'init_' + self.ext)
-        init(name, fasta)
+        init(name)
 
     # ----------------------------------------------------------------------- #
-    def init_wig(self, f, fasta):
+    def init_wig(self, f):
         self.h = open(f, 'w')
 
-    def init_bed(self, f, fasta):
+    def init_bed(self, f):
         self.h = open(f, 'w')
 
-    def init_bw(self, f, fasta):
+    def init_bw(self, f):
         import pyBigWig as bw
         self.h = bw.open(f, 'w')
-        self.h.addHeader([(chr, lng) for chr, lng in fasta])
 
     # ----------------------------------------------------------------------- #
     def _wig(self, chr, pos, span, val):
@@ -325,68 +341,84 @@ class Write():
             repeats = 1
             repeats_init = i + 1
 
-# --------------------------------------------------------------------------- #
+
+started = time.time()
+
 app.intro()
 igvtools, bed2bigbed = check_exe(__file__)
 
 begin = time.time()
 app.log('Get contents of fasta file: ' + app.argx['input'])
-fasta = getcontents(app.argx['input'])
-app.success_log('File loaded: {0:.2f}sec.'.format(time.time()-begin))
-
+fasta = app.fasta()
+app.success_log('File loaded: {0:.2f}sec.'.format(time.time() - begin))
 
 begin = time.time()
 app.log('Making raw GMS-track')
-track = makegms.run(app.argx['input'],
-                    read=app.argx['length'],
-                    threads=int(app.argx['threads']))
+#track = makegms.run(app.argx['input'],
+#                    read=app.argx['length'],
+#                    threads=int(app.argx['threads']))
+#os.system('./makegms.exe {0} {1} {2}'.format(app.argx['input'], app.argx['length'], int(app.argx['threads'])))
+#track = np.unpackbits( np.fromfile('./track.bin', dtype = "uint8") )
+track = np.unpackbits( np.fromfile('./Cache/GMS_track.bin', dtype = "uint8") )
 app.success_log('GMS-track is created: {0:.2f}sec.'.format(time.time()-begin))
 
 
+# --------------------------------------------------------------------------- #
 fs = {}
 for k in outputs:
     if k in ['wig', 'bw', 'bed']:
-        fs[k] = Write(outputs[k], k, fasta)
+        fs[k] = Write(outputs[k], k)
 
 if 'tdf' in outputs and 'wig' not in fs:
     outputs['wig'] = '.temporary.wig'
-    fs['wig'] = Write(outputs['wig'], 'wig', fasta)
+    fs['wig'] = Write(outputs['wig'], 'wig')
 
 if 'bigbed' in outputs and 'bed' not in fs:
     outputs['bed'] = '.temporary.bed'
-    fs['bed'] = Write(outputs['bed'], 'bed', fasta)
+    fs['bed'] = Write(outputs['bed'], 'bed')
 
+if 'bw' in outputs:
+    fs['bw'].h.addHeader([(chr, size) for chr, size, name in fasta])
+
+
+# --------------------------------------------------------------------------- #
 app.log('Splitting raw GMS-track to chromosomes')
-i = 0
-for chr, lng in fasta:
+
+mask = 100 * np.ones(app.argx['length']) / app.argx['length']
+index = 0
+for chr, lng, name in fasta:
     begin = time.time()
-    app.echo(' #  Chr: ' + chr, 'green')
+    app.echo(' -  Chr: ' + name + '\r', 'green')
     
     reads = lng - app.argx['length'] + 1
-    subseq = track[i:i+reads]
-    i += lng
+    subseq = track[index:index+reads]
+    index += lng
 
-    unique = np.convolve(subseq, kernel)
-    left = np.concatenate(([0] * mdist, unique))[:reads]
-    right = np.concatenate((unique, [0] * mdist))[-reads:]
+    if app.argx['reads'][0] == 'S':
+        final = subseq
+    else:
+        unique = np.convolve(subseq, kernel)
+        left = np.concatenate((np.zeros(mdist), unique))[:reads]
+        right = np.concatenate((unique, np.zeros(mdist)))[-reads:]
+        final = subseq + (np.ones(reads) - subseq) * (left + right) / 2
 
-    final = subseq + (np.ones(reads) - subseq) * (left + right) / 2
-    gms = np.convolve(final, [100/app.argx['length']] * app.argx['length'])
-
+    gms = np.append(np.round(np.convolve(final, mask)), [-1])
     for key in fs:
-        fs[key].add(chr, np.append(np.round(gms), [-1]))
+        fs[key].add(chr, gms)
 
+    app.echo('[+] Chr: ' + name, 'green')
     app.echo(' [{0:.2f}sec.]\n'.format(time.time()-begin), 'green_bold')
 
 for key in fs:
     fs[key].h.close()
 
+
 # --------------------------------------------------------------------------- #
-sizes = False
+size_ = False
 if 'tdf' in outputs or 'bigbed' in outputs:
-    sizes = '.temporary.chrom.sizes'
-    data = ["{0}\t{1}".format(chr.split(' ')[0], lng) for chr, lng in fasta]
-    with open(sizes, 'w+') as output:
+    size_ = '.temporary.chrom.sizes'
+    data = ["{0}\t{1}".format(chr, size) for chr, size, name in fasta]
+    with open(size_, 'w+') as output:
         output.write('\n'.join(data))
 
 if 'tdf' in outputs:
@@ -397,7 +429,7 @@ if 'tdf' in outputs:
       "java -Djava.awt.headless=true -Xmx1500m",
       "-jar {app}".format(app=igvtools),
       "toTDF {wig} {tdf}".format(wig=fs['wig'].h.name, tdf=outputs['tdf']),
-      sizes, "> /dev/null 2>&1"
+      size_, "> /dev/null 2>&1"
     ]))
     
     os.remove('igv.log')
@@ -418,7 +450,7 @@ if 'bigbed' in outputs:
     os.system((' ').join([
       bed2bigbed, "-type=bed9",
       "{bed}.sorted".format(bed=outputs['bed']),
-      sizes, outputs['bigbed'],
+      size_, outputs['bigbed'],
       "> /dev/null 2>&1"
     ]))
 
@@ -428,8 +460,18 @@ if 'bigbed' in outputs:
 
     app.success_log('Done: {0:.2f}sec.'.format(time.time()-begin))
 
-if sizes:
-    os.remove(sizes)
+if size_:
+    os.remove(size_)
     
 app.echo('\nGematria has finished.\nElapsed time: ', 'white_bold')
 app.echo('{0:.2f}sec.\n'.format(time.time()-started), 'white_bold')
+
+
+# --------------------------------------------------------------------------- #
+# --------------------------------------------------------------------------- #
+time.sleep(5)
+PID = os.getpid()
+print('\n--- MEMORY USAGE ---')
+os.system('cat /proc/'+str(PID)+'/status | grep "VmHWM" | awk {\'print $2\'}')
+# --------------------------------------------------------------------------- #
+# --------------------------------------------------------------------------- #
