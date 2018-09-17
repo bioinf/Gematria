@@ -10,18 +10,20 @@ char complement(char ch)
 void readGenome(char * src)
 {
     extern Genome * seq;
-    extern unsigned read_length;
 
     FILE * f = fopen(src, "r");
-    if (f == NULL) exit(EXIT_FAILURE);
-
+    if (f == NULL) {
+        printf("Genome file not found\n");
+        exit(EXIT_FAILURE);
+    }
+    
     fseek(f, 0, SEEK_END);
     
     unsigned long long bytes = (unsigned long long) ftell(f);
-
+    
     seq = (Genome*) malloc(sizeof(Genome));
     seq->sequence = (char *) malloc(sizeof(char) * bytes * 2);
-
+    
     fseek(f, 0, SEEK_SET);
     
     char ch;
@@ -34,16 +36,15 @@ void readGenome(char * src)
         } else if (ch == '\n') {
             state = 'N'; // is newline
         } else if (state != 'T') {
-            seq->sequence[i++] = toupper(ch);
+            seq->sequence[i++] = (ch >= 'a' ? ch - 32 : ch); // to upper case
         }
     }
     fclose(f);
     
     num r = i;
     while (i > 0) seq->sequence[r++] = complement(seq->sequence[--i]);
-
+    
     seq->sequence[r] = '\0';
     seq->length = r;
     seq->counts = (unsigned short *) malloc (sizeof(unsigned short) * r);
-    seq->size = seq->length/2 - read_length + 1;
 }

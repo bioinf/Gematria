@@ -5,6 +5,7 @@
 #include "_reader.c"
 #include "_decomposition.c"
 #include "_sorter.c"
+#include "_makegms.c"
 
 static PyObject *
 makegms_run(PyObject *self, PyObject *args, PyObject *keywds)
@@ -17,31 +18,15 @@ makegms_run(PyObject *self, PyObject *args, PyObject *keywds)
                                      &src, &read_length, &threads)) return NULL;
     /* --------------------------------------------------------------------- */
 
-    readGenome(src);
-    
-    if (threads > seq->length/10) threads = seq->length/10;
-    if (threads == 0) threads = 1;
+    makegms(src, threads);
 
-    ThreadData * parts = decomposition(threads);
-    pthread_t * thread = (pthread_t*) malloc(threads * sizeof(pthread_t));
-
-    for (unsigned t = 0; t < threads; t++){
-        pthread_create( &(thread[t]), NULL, sorter, &parts[t]);
-    }
-    for (unsigned t = 0; t < threads; t++){
-        pthread_join(thread[t], NULL);
-    }
-
-    free(thread);
-    free(parts);
-    free(seq->sequence);
-    /* --------------------------------------------------------------------- */
-
+    printf(" [ %lli ]\n", seq->size);
     PyObject *l = PyList_New(seq->size);
     for (num i = 0; i != seq->size; ++i) {
         PyList_SetItem(l, i, Py_BuildValue("i", seq->counts[i] > 1 ? 0 : 1));
     }
 
+    /* --------------------------------------------------------------------- */
     free(seq->counts);
     free(seq);
     return l;

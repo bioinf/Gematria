@@ -54,6 +54,5 @@ void * sorter(void * data){
     // print debug
     // pthread_mutex_unlock(&mutex);
 
-    free(block->positions);
     pthread_exit(0);
 }

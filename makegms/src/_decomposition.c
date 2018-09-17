@@ -1,4 +1,4 @@
-unsigned int murmurHash2 (char * key, unsigned int len)
+unsigned int murmurHash2(char * key, unsigned int len)
 {
     const unsigned m = 0x5bd1e995;
     const unsigned seed = 0;
@@ -37,7 +37,7 @@ unsigned int murmurHash2 (char * key, unsigned int len)
     return h;
 }
 
-void append (ThreadData * item, num k)
+void append(ThreadData * item, num k)
 {
     if (item->pointer >= item->size) {
         item->size += 50;
@@ -46,11 +46,8 @@ void append (ThreadData * item, num k)
     item->positions[item->pointer++] = k;
 }
 
-ThreadData * decomposition(unsigned threads)
+ThreadData * decomposition(Genome * seq, unsigned read_length, unsigned threads)
 {
-    extern Genome * seq;
-    extern unsigned read_length;
-
     ThreadData * data = (ThreadData*) malloc(threads * sizeof(ThreadData));
 
     for (unsigned int t = 0; t < threads; t++){
