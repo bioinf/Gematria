@@ -58,7 +58,7 @@ class App():
             self.exit('Kio okazas? (Specify arguments. Please)')
 
         if argv[1] == 'help':
-            self.exit(0)
+            self.exit()
 
         first = -1 * len(argv) % 2
         for i in range(0, len(argv) - 1, 2):
@@ -160,7 +160,7 @@ args = [
   ['-t', '--threads', 'Number of threads. Default: auto'],
   ['-o', '--output', 'Output filenames without extension'],
   ['-f', '--formats', 'Comma separated output formats',
-                      'Acceptable formats: wig, bigwig, bed, tdf, bigbed'],
+                      'Acceptable: wig, bigwig, bed, tdf, bigbed, all'],
   ['-r', '--reads', 'Reads type parameters in the following format:',
                     'S - for single-end reads',
                     'N:mu:sigma - for Normal distribution of insertion size',
@@ -354,12 +354,16 @@ app.success_log('File loaded: {0:.2f}sec.'.format(time.time() - begin))
 
 begin = time.time()
 app.log('Making raw GMS-track')
-#track = makegms.run(app.argx['input'],
-#                    read=app.argx['length'],
-#                    threads=int(app.argx['threads']))
-#os.system('./makegms.exe {0} {1} {2}'.format(app.argx['input'], app.argx['length'], int(app.argx['threads'])))
-#track = np.unpackbits( np.fromfile('./track.bin', dtype = "uint8") )
-track = np.unpackbits( np.fromfile('./Cache/GMS_track.bin', dtype = "uint8") )
+
+track = makegms.run(app.argx['input'],
+                    read=app.argx['length'],
+                    threads=int(app.argx['threads']))
+
+# os.system('./exe/makegms.exe {0} {1} {2}'.format(app.argx['input'], 
+#            app.argx['length'], int(app.argx['threads'])))
+# track = np.unpackbits(np.fromfile('./track.bin', dtype = "uint8"))
+# os.remove('./track.bin')
+
 app.success_log('GMS-track is created: {0:.2f}sec.'.format(time.time()-begin))
 
 
@@ -465,13 +469,3 @@ if size_:
     
 app.echo('\nGematria has finished.\nElapsed time: ', 'white_bold')
 app.echo('{0:.2f}sec.\n'.format(time.time()-started), 'white_bold')
-
-
-# --------------------------------------------------------------------------- #
-# --------------------------------------------------------------------------- #
-time.sleep(5)
-PID = os.getpid()
-print('\n--- MEMORY USAGE ---')
-os.system('cat /proc/'+str(PID)+'/status | grep "VmHWM" | awk {\'print $2\'}')
-# --------------------------------------------------------------------------- #
-# --------------------------------------------------------------------------- #

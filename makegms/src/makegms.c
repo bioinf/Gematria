@@ -20,10 +20,9 @@ makegms_run(PyObject *self, PyObject *args, PyObject *keywds)
 
     makegms(src, threads);
 
-    printf(" [ %lli ]\n", seq->size);
     PyObject *l = PyList_New(seq->size);
     for (num i = 0; i != seq->size; ++i) {
-        PyList_SetItem(l, i, Py_BuildValue("i", seq->counts[i] > 1 ? 0 : 1));
+        PyList_SetItem(l, i, Py_BuildValue("h", seq->counts[i] > 1 ? 0 : 1));
     }
 
     /* --------------------------------------------------------------------- */

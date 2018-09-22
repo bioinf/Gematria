@@ -10,7 +10,7 @@ args = [
   ['-t', '--threads', 'Number of threads. Default: auto'],
   ['-o', '--output', 'Output filenames without extension'],
   ['-f', '--formats', 'Comma separated output formats',
-                      'Acceptable formats: wig, bigwig, bed, tdf, bigbed'],
+                      'Acceptable: wig, bigwig, bed, tdf, bigbed, all'],
   ['-r', '--reads', 'Reads type parameters in the following format:',
                     'S - for single-end reads',
                     'N:mu:sigma - for Normal distribution of insertion size',

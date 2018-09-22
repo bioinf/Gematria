@@ -39,7 +39,7 @@ class App():
             self.exit('Kio okazas? (Specify arguments. Please)')
 
         if argv[1] == 'help':
-            self.exit(0)
+            self.exit()
 
         first = -1 * len(argv) % 2
         for i in range(0, len(argv) - 1, 2):
