@@ -16,7 +16,7 @@ insertion size improves mappability as well).
 
 ## Quick Start
 
-### Installation
+### Installation (for Python3)
 
 ```bash
 pip install makegms numpy pyBigWig
@@ -38,7 +38,7 @@ chmod +x gematria.py
 -t, --threads  Number of threads. Default: auto
 -o, --output   Output filenames without extension
 -f, --formats  Comma separated output formats
-               Acceptable formats: wig, bigwig, bed, tdf, bigbed
+               Acceptable: wig, bigwig, bed, tdf, bigbed, all
 -r, --reads    Reads type parameters in the following format:
                S - for single-end reads
                N:mu:sigma - for Normal distribution of insertion size
@@ -49,14 +49,13 @@ chmod +x gematria.py
 ### Examples:
 
 ```bash
-# Run of Gematria for 100bp single-end reads with a result saving in a wig format:
-./gematria.py input.fasta
+# Run of Gematria for 5bp single-end reads 
+# with a result saving in a bigWig, bed, tdf files:
+./gematria.py ./test/example.fa -l 5 -o result -f bw,bed,tdf
 
-# .. Result saving in a bigWig file:
-./gematria.py -i test/ecoli.fasta -o result -f bw,bed,tdf
-
-# Calculate mappability for 35bp paired-end reads with 200..300bp insertion size:
-./gematria.py -i input.fasta -l 35 -r U:200:300
+# Calculate mappability for 7bp paired-end reads with 10..25bp insertion size:
+# the result will be saved to file ./test/example.fa.wig
+./gematria.py -i ./test/example.fa -l 7 -r U:10:25
 ```
 
 ## Installation without a superuser
@@ -81,103 +80,82 @@ curl https://raw.githubusercontent.com/evgeny-bakin/GeMaTrIA/master/gematria.sta
 ./cpython/python gematria.py
 ```
 
-## Requirements
+## Development
 
-Gematria interface part was developed via Python 3 (scripts gematria.py for developing and gematria.standalone.py for production) while the most computationally-consuming algorithms were implemented in C (`makegms`).
-The following set of extra Python libraries are required (in brackets we give the versions of the libraries for which our tool was tested): `numpy`
-
----
-
-[edit]
-
----
-
-Out of the box it can produce output files with a mappability track in two formats: Wig and Bed (in the latter case a mappability will be represented with a color intensity). However a user may enhance capabilites of GeMaTrIA output generation in the following way:
-
-* For bigWig: install Python [pyBigWig library](https://github.com/deeptools/pyBigWig)
-* For bigBed: 
-	- create directory _utils_ in GeMaTrIA main directory;
-	- download there [bigBedToBed](http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/bigBedToBed) and [faSize](http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/faSize) utilities from UCSC official web site.
-* For TDF: 
-	- create directory _utils_ in GeMaTrIA main directory;
-	- download there [faSize](http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/faSize) from UCSC official web site;
-	- download there [igvtools](http://software.broadinstitute.org/software/igv/download) from Broadinstitute web site.
-
-Thus, for the full set of options, your GeMaTrIA directory should look as follows:
-
-GeMaTrIA<br/>
-|<br/>
-+--&nbsp; utils/<br/>
-|&nbsp; &nbsp; &nbsp; |<br/>
-|&nbsp; &nbsp; &nbsp; +-- bedToBigBed<br/>
-|&nbsp; &nbsp; &nbsp; +-- faSize<br/>
-|&nbsp; &nbsp; &nbsp; +-- igvtools<br/>
-|&nbsp; &nbsp; &nbsp; +-- igvtools.jar<br/>
-+--&nbsp; GMS\_aux\_lib.py<br/>
-+--&nbsp; makeRawGMS<br/>
-+--&nbsp; gematria.py<br/> 
-
-## Installation
-
-Just clone this GitHub project and download extra utilities if required (see section **Requirements**). Check, that file makeRawGMS has permissions to be executed (`chmod u+x makeRawGMS`).
-
-## Tool options 
-
-```shell
-python3 gematria.py [-h] -i FILE -o Str [-l Int] [-r Str] [-f Str] [-t Int] [-m]                   
+```bash
+git clone https://github.com/evgeny-bakin/GeMaTrIA.git ./gematria
+cd gematria
 ```
 
-Arguments:
-*  `-i, --input`    Name of FASTA-file with a genome.
-*  `-o, --output`   Prefix of output files generated with GeMaTrIA.
-*  `-l, --length`   Read length (default is 100).
-*  `-r, --read`     Reads type parameters in the following format: S (for single-end reads) **or** N:mu:sigma (for Normal distribution of insertions size) **or** U:min:max (for Uniform distribution of insertion size). Default is a single-end mode.
-*  `-f, --formats`  List of required output formats separated with commas (**without spaces**), e.g. format1,format2,... etc. Supported formats are Wig, bigWig, Bed, bigBed, TDF, ALL (for generation of track in all available formats). Default is bigWig.
-*  `-m, --mat`      Save debug data in Matlab MAT format.
-*  `-t, --threads`  Number of threads (**please, note, that multithreading for large genomes is still under debugging**).
+### Makegms
 
-## Usage examples
+The `makegms` module generates a raw binary track where the `false` correspond to repeating regions, and the `true` correspond to unique regions in the genome for a given length of the read.
 
-Easiest run of GeMaTrIA for 100bp single-end reads with a result saving in a bigWig file:
-```shell
-python3 gematria.py -i e_coli.fasta -o e_coli
+Build as a python module:
+
+```bash
+cd makegms/
+rm -rf makegms.egg-* dist build
+python3 setup.py build
+python3 setup.py install
+
+# Testing:
+cd ../
+python3 ./test/makegms.test.py
 ```
 
-Save data in Wig and TDF formats:
-```shell
-python3 gematria.py -i e_coli.fasta -o e_coli -f Wig,TDF
+Example of module usage
+
+```python
+import makegms
+track = makegms.run('input.file.fasta', read=100, threads=4)
 ```
 
-Calculate mappability for 100bp paired-end reads with 200..300bp insertion size:
-```shell
-python3 gematria.py -i e_coli.fasta -o e_coli -f Wig,TDF -r U:200:300
-```
-Calculate mappability for 200bp paired-end reads with 400..600bp insertion size:
-```shell
-python3 gematria.py -i e_coli.fasta -o e_coli -f Wig,TDF -l 200 -r U:400:600
+Build as an independent application:
+
+```bash
+cd makegms/src/
+gcc -pthread -std=c99 -m64 -O main.c -lm \
+  -o ../../exe/makegms.exe
+
+# Memory leak testing:
+cd ../../
+valgrind --leak-check=full --show-leak-kinds=all \
+ ./exe/makegms.exe ./test/example.fa 10 1
 ```
 
-Do all this, using 4 threads:
-```shell
-python3 gematria.py -i e_coli.fasta -o e_coli -f Wig,TDF -l 200 -r U:400:600 -t 4
+### Gematria.py
+
+Python wrapper for makegms. The script uses the contents of the folder `/include` and auxiliary applications from the `/exe` folder.
+
+```bash
+# Running the script on test data with various parameters
+python3 ./test/gematria.test.py
+```
+
+### Gematria.standalone.py
+
+If you find it convenient to compile all the code into one script (`gematria.standalone.py`) and use it, run the command:
+
+```bash
+python3 build.py
+chmod +x gematria.standalone.py
 ```
 
 ## Our team
 
 This tool was developed by joint efforts of Evgeny Bakin<sup>1</sup>, Natalia Zorina<sup>2</sup>, Elizaveta Skalon<sup>2</sup>, Michael Utman<sup>3</sup> and Vyacheslav Batunov<sup>4</sup> under general supervision of Alexander Predeus<sup>1</sup>. 
 
-[1] Bioinformatics institute, Saint-Petersburg, Russia
-
-[2] Saint-Petersburg State University (SPbU), Russia
-
-[3] Saint-Petersburg Academic University (SPbAU), Russia
-
+[1] Bioinformatics institute, Saint-Petersburg, Russia  
+[2] Saint-Petersburg State University (SPbU), Russia  
+[3] Saint-Petersburg Academic University (SPbAU), Russia  
 [4] Saint-Petersburg State University of Aerospace Instrumentation (SUAI), Russia
 
-## TBD 
-* Improve speed of output files generation.
-* Debug multithreading for large genomes.
-* Make code more readable.
-* Add more reallistic insertion size distributions.
-* Add erroneous reads support.
-* Add automatic generation of Circos plot.
+## TBD
+ 
+ [-] Improve speed of output files generation.  
+ [-] Debug multithreading for large genomes.  
+ [+] Make code more readable.  
+ [-] Add more reallistic insertion size distributions.  
+ [-] Add erroneous reads support.  
+ [-] Add automatic generation of Circos plot.
