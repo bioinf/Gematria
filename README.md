@@ -19,7 +19,7 @@ insertion size improves mappability as well).
 ### Installation (for Python3)
 
 ```bash
-pip install makegms numpy pyBigWig
+pip3 install makegms numpy pyBigWig
 curl https://raw.githubusercontent.com/evgeny-bakin/GeMaTrIA/master/gematria.standalone.py > gematria.py
 chmod +x gematria.py
 ```

@@ -16,6 +16,7 @@ class Unbuffered(object):
 
 class App():
     def __init__(self, init="", args=[], demo=[]):
+        self._debug = False
         self.stderr = Unbuffered(sys.stderr)
         self.init = init
         self.demo = [[sys.argv[0], e] for e in demo]

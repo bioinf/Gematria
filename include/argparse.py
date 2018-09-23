@@ -17,10 +17,10 @@ args = [
                     'U:min:max - for Uniform distribution of insertion size'],
   ['-h', '--help', 'Show this help']]
 demo = [
-  'input.fasta',
-  'input.fasta -l 35 -t 4 -o result -f bed,tdf -r U:0:80',
-  '-i input.fasta -l 50',
-  '-i input.fasta -r N:40:20']
+  './test/example.fa -l 5 -o result -f bw,bed,tdf',
+  '-i ./test/example.fa -l 7 -r U:10:25',
+  '-i ./test/example.fa -l 50',
+  '-i ./test/ecoli.fa -r N:40:20 -l 15']
 
 app = App(init, args, demo)
 
@@ -78,6 +78,9 @@ app.default('threads', os.sysconf('SC_NPROCESSORS_ONLN'))
 app.default('length', 100)
 app.argx['length'] = int(app.argx['length'])
 
+if '--debug' in sys.argv:
+    app._debug = sys.argv[sys.argv.index('--debug') + 1]
+    print(app._debug)
 
 # --------------------------------------------------------------------------- #
 def download(src, dst, iexec=False):

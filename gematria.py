@@ -137,3 +137,17 @@ if size_:
     
 app.echo('\nGematria has finished.\nElapsed time: ', 'white_bold')
 app.echo('{0:.2f}sec.\n'.format(time.time()-started), 'white_bold')
+
+# --------------------------------------------------------------------------- #
+if app._debug:
+    time.sleep(1)
+    inf = 'cat /proc/{pid}/status | grep "VmHWM" | xargs'
+    log = 'Length: {0}  Filesize: {1}  Memory: {2}  Filename: {3}\n'
+
+    memory = os.popen(inf.format(pid=os.getpid())).read().split(' ')[1]
+    fsize = os.path.getsize(app.argx['input'])
+
+    h = open(app._debug, 'a+')
+    h.write(log.format(app.argx['length'], fsize, memory, app.argx['input']))
+    h.close()
+# --------------------------------------------------------------------------- #

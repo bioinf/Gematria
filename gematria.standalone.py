@@ -35,6 +35,7 @@ class Unbuffered(object):
 
 class App():
     def __init__(self, init="", args=[], demo=[]):
+        self._debug = False
         self.stderr = Unbuffered(sys.stderr)
         self.init = init
         self.demo = [[sys.argv[0], e] for e in demo]
@@ -167,10 +168,10 @@ args = [
                     'U:min:max - for Uniform distribution of insertion size'],
   ['-h', '--help', 'Show this help']]
 demo = [
-  'input.fasta',
-  'input.fasta -l 35 -t 4 -o result -f bed,tdf -r U:0:80',
-  '-i input.fasta -l 50',
-  '-i input.fasta -r N:40:20']
+  './test/example.fa -l 5 -o result -f bw,bed,tdf',
+  '-i ./test/example.fa -l 7 -r U:10:25',
+  '-i ./test/example.fa -l 50',
+  '-i ./test/ecoli.fa -r N:40:20 -l 15']
 
 app = App(init, args, demo)
 
@@ -228,6 +229,9 @@ app.default('threads', os.sysconf('SC_NPROCESSORS_ONLN'))
 app.default('length', 100)
 app.argx['length'] = int(app.argx['length'])
 
+if '--debug' in sys.argv:
+    app._debug = sys.argv[sys.argv.index('--debug') + 1]
+    print(app._debug)
 
 # --------------------------------------------------------------------------- #
 def download(src, dst, iexec=False):
@@ -469,3 +473,17 @@ if size_:
     
 app.echo('\nGematria has finished.\nElapsed time: ', 'white_bold')
 app.echo('{0:.2f}sec.\n'.format(time.time()-started), 'white_bold')
+
+# --------------------------------------------------------------------------- #
+if app._debug:
+    time.sleep(1)
+    inf = 'cat /proc/{pid}/status | grep "VmHWM" | xargs'
+    log = 'Length: {0}  Filesize: {1}  Memory: {2}  Filename: {3}\n'
+
+    memory = os.popen(inf.format(pid=os.getpid())).read().split(' ')[1]
+    fsize = os.path.getsize(app.argx['input'])
+
+    h = open(app._debug, 'a+')
+    h.write(log.format(app.argx['length'], fsize, memory, app.argx['input']))
+    h.close()
+# --------------------------------------------------------------------------- #
