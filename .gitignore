@@ -3,3 +3,5 @@
 /makegms/Make_GMS.egg-info
 /makegms/makegms.egg-info
 /include/__pycache__/
+_genomes
+_results
