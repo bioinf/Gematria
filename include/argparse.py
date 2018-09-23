@@ -53,7 +53,7 @@ try:
         mdist, kernel = [0, [1]]
 
     # Normal distribution of insertions size
-    if app.argx['reads'][0] == 'N':
+    elif app.argx['reads'][0] == 'N':
         from math import sqrt, pi, exp
         mu, s = map(int, app.argx['reads'][2:].split(':'))
 
@@ -66,13 +66,16 @@ try:
 
     # Uniform distribution of insertion size
     # U:min:max
-    if app.argx['reads'][0] == 'U':
+    elif app.argx['reads'][0] == 'U':
         v_min, v_max = map(int, app.argx['reads'][2:].split(':'))
         ker = [1/(v_max - v_min)] * (v_max - v_min)
         mdist, kernel = [v_min, ker]
-
+    
+    else:
+        raise Exception('Wrong parametrs: reads')
+    
 except:
-    app.exit('Unable to parse reads type parameters')
+    app.exit('Unable to parse reads type parameters [--reads]')
 
 app.default('threads', os.sysconf('SC_NPROCESSORS_ONLN'))
 app.default('length', 100)
