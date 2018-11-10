@@ -23,9 +23,16 @@ app.success_log('File loaded: {0:.2f}sec.'.format(time.time() - begin))
 begin = time.time()
 app.log('Making raw GMS-track')
 
-track = makegms.run(app.argx['input'],
-                    read=app.argx['length'],
-                    threads=int(app.argx['threads']))
+# unsigned int max value = 4,294,967,295
+# genome max length ~ 2147483000
+if os.path.getsize(app.argx['input']) < 2147483000:
+    track = makegms.small(app.argx['input'],
+                        read=app.argx['length'],
+                        threads=int(app.argx['threads']))
+else:
+    track = makegms.large(app.argx['input'],
+                        read=app.argx['length'],
+                        threads=int(app.argx['threads']))
 
 # os.system('./exe/makegms.exe {0} {1} {2}'.format(app.argx['input'], 
 #            app.argx['length'], int(app.argx['threads'])))
@@ -143,8 +150,10 @@ if app._debug:
     time.sleep(1)
     inf = 'cat /proc/{pid}/status | grep "VmHWM" | xargs'
 
-    memory = os.popen(inf.format(pid=os.getpid())).read().split(' ')[1]
-    memory = int(memory)/1024
+    m = os.popen(inf.format(pid=os.getpid()))
+    memory = int(m.read().split(' ')[1])/1024
+    m.close()
+
     fsize = os.path.getsize(app.argx['input'])/1024/1024
 
     h = open(app._debug, 'a+')
