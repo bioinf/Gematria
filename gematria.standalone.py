@@ -388,11 +388,11 @@ for k in outputs:
         fs[k] = Write(outputs[k], k)
 
 if 'tdf' in outputs and 'wig' not in fs:
-    outputs['wig'] = '.temporary.wig'
+    outputs['wig'] = '.__temporary.wig'
     fs['wig'] = Write(outputs['wig'], 'wig')
 
 if 'bigbed' in outputs and 'bed' not in fs:
-    outputs['bed'] = '.temporary.bed'
+    outputs['bed'] = '.__temporary.bed'
     fs['bed'] = Write(outputs['bed'], 'bed')
 
 if 'bw' in outputs:
@@ -434,7 +434,7 @@ for key in fs:
 # --------------------------------------------------------------------------- #
 size_ = False
 if 'tdf' in outputs or 'bigbed' in outputs:
-    size_ = '.temporary.chrom.sizes'
+    size_ = '.__temporary.chrom.sizes'
     data = ["{0}\t{1}".format(chr, size) for chr, size, name in fasta]
     with open(size_, 'w+') as output:
         output.write('\n'.join(data))
@@ -451,7 +451,7 @@ if 'tdf' in outputs:
     ]))
     
     os.remove('igv.log')
-    if fs['wig'].h.name[0] == '.':
+    if fs['wig'].h.name[0:3] == '.__':
         os.remove(fs['wig'].h.name)
     
     app.success_log('Done: {0:.2f}sec.'.format(time.time()-begin))
@@ -472,7 +472,7 @@ if 'bigbed' in outputs:
       "> /dev/null 2>&1"
     ]))
 
-    if fs['bed'].h.name[0] == '.':
+    if fs['bed'].h.name[0:3] == '.__':
         os.remove(fs['bed'].h.name)
         os.remove(fs['bed'].h.name + '.sorted')
 
