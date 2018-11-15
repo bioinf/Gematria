@@ -474,7 +474,8 @@ if 'bigbed' in outputs:
 
     if fs['bed'].h.name[0:3] == '.__':
         os.remove(fs['bed'].h.name)
-        os.remove(fs['bed'].h.name + '.sorted')
+
+    os.remove(fs['bed'].h.name + '.sorted')
 
     app.success_log('Done: {0:.2f}sec.'.format(time.time()-begin))
 
