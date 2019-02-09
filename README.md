@@ -77,7 +77,7 @@ wget https://bootstrap.pypa.io/get-pip.py
 ./cpython/python .local/bin/pip3.8 install numpy pyBigWig git+https://github.com/latur/BloomGMS --user
 
 # Gematria
-curl https://raw.githubusercontent.com/evgeny-bakin/GeMaTrIA/master/bloom.standalone.py > gematria.py
+curl https://raw.githubusercontent.com/evgeny-bakin/GeMaTrIA/bloom/gematria.standalone.py > gematria.py
 ./cpython/python gematria.py
 ```
 
