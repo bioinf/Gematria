@@ -2,7 +2,7 @@
 import os
 import time
 
-import makegms
+import bloomgms
 import numpy as np
 
 
@@ -23,16 +23,9 @@ app.success_log('File loaded: {0:.2f}sec.'.format(time.time() - begin))
 begin = time.time()
 app.log('Making raw GMS-track')
 
-# unsigned int max value = 4,294,967,295
-# genome max length ~ 2147483000
-if os.path.getsize(app.argx['input']) < 2147483000:
-    track = makegms.small(app.argx['input'],
-                        read=app.argx['length'],
-                        threads=int(app.argx['threads']))
-else:
-    track = makegms.large(app.argx['input'],
-                        read=app.argx['length'],
-                        threads=int(app.argx['threads']))
+track = bloomgms.make(app.argx['input'],
+                      read=app.argx['length'],
+                      quality=int(app.argx['quality']))
 
 # os.system('./exe/makegms.exe {0} {1} {2}'.format(app.argx['input'], 
 #            app.argx['length'], int(app.argx['threads'])))

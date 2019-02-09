@@ -7,7 +7,7 @@ init = '[fasta file] [Optional arguments]'
 args = [
   ['-i', '--input', 'Path to `genome.fasta` file'],
   ['-l', '--length', 'Read length. Default: 100'],
-  ['-t', '--threads', 'Number of threads. Default: auto'],
+  ['-q', '--quality', 'Memory usage: quality * genome size. Default: 12'],
   ['-o', '--output', 'Output filenames without extension'],
   ['-f', '--formats', 'Comma separated output formats',
                       'Acceptable: wig, bigwig, bed, tdf, bigbed, all'],
@@ -77,7 +77,7 @@ try:
 except:
     app.exit('Unable to parse reads type parameters [--reads]')
 
-app.default('threads', os.sysconf('SC_NPROCESSORS_ONLN'))
+app.default('quality', 12)
 app.default('length', 100)
 app.argx['length'] = int(app.argx['length'])
 

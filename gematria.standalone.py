@@ -2,7 +2,7 @@
 import os
 import time
 
-import makegms
+import bloomgms
 import numpy as np
 
 
@@ -70,7 +70,7 @@ class App():
     def intro(self):
         self.echo('Gematria\nCommand executed:\n', 'white_bold')
         self.echo('{app}'.format(app=sys.argv[0]), 'white')
-        for nm in ['input', 'output', 'formats', 'length', 'threads', 'reads']:
+        for nm in ['input', 'output', 'formats', 'length', 'quality', 'reads']:
             self.echo(" --{0} {1}".format(nm, self.argx[nm]), 'white')
         self.echo('\n\n')
         
@@ -158,7 +158,7 @@ init = '[fasta file] [Optional arguments]'
 args = [
   ['-i', '--input', 'Path to `genome.fasta` file'],
   ['-l', '--length', 'Read length. Default: 100'],
-  ['-t', '--threads', 'Number of threads. Default: auto'],
+  ['-q', '--quality', 'Memory usage: quality * genome size. Default: 12'],
   ['-o', '--output', 'Output filenames without extension'],
   ['-f', '--formats', 'Comma separated output formats',
                       'Acceptable: wig, bigwig, bed, tdf, bigbed, all'],
@@ -228,7 +228,7 @@ try:
 except:
     app.exit('Unable to parse reads type parameters [--reads]')
 
-app.default('threads', os.sysconf('SC_NPROCESSORS_ONLN'))
+app.default('quality', 12)
 app.default('length', 100)
 app.argx['length'] = int(app.argx['length'])
 
@@ -362,16 +362,9 @@ app.success_log('File loaded: {0:.2f}sec.'.format(time.time() - begin))
 begin = time.time()
 app.log('Making raw GMS-track')
 
-# unsigned int max value = 4,294,967,295
-# genome max length ~ 2147483000
-if os.path.getsize(app.argx['input']) < 2147483000:
-    track = makegms.small(app.argx['input'],
-                        read=app.argx['length'],
-                        threads=int(app.argx['threads']))
-else:
-    track = makegms.large(app.argx['input'],
-                        read=app.argx['length'],
-                        threads=int(app.argx['threads']))
+track = bloomgms.make(app.argx['input'],
+                      read=app.argx['length'],
+                      quality=int(app.argx['quality']))
 
 # os.system('./exe/makegms.exe {0} {1} {2}'.format(app.argx['input'], 
 #            app.argx['length'], int(app.argx['threads'])))

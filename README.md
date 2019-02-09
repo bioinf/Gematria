@@ -19,9 +19,9 @@ insertion size improves mappability as well).
 ### Installation (for Python3)
 
 ```bash
-pip3 install --user git+https://github.com/latur/Makegms
+pip3 install --user git+https://github.com/latur/BloomGMS
 pip3 install numpy pyBigWig
-curl https://raw.githubusercontent.com/evgeny-bakin/GeMaTrIA/master/gematria.standalone.py > gematria.py
+curl https://raw.githubusercontent.com/evgeny-bakin/GeMaTrIA/bloom/gematria.standalone.py > gematria.py
 chmod +x gematria.py
 ```
 
@@ -74,10 +74,10 @@ wget https://bootstrap.pypa.io/get-pip.py
 ./cpython/python get-pip.py --user
 
 # Packages
-./cpython/python .local/bin/pip3.8 install numpy pyBigWig git+https://github.com/latur/Makegms --user
+./cpython/python .local/bin/pip3.8 install numpy pyBigWig git+https://github.com/latur/BloomGMS --user
 
 # Gematria
-curl https://raw.githubusercontent.com/evgeny-bakin/GeMaTrIA/master/gematria.standalone.py > gematria.py
+curl https://raw.githubusercontent.com/evgeny-bakin/GeMaTrIA/master/bloom.standalone.py > gematria.py
 ./cpython/python gematria.py
 ```
 
@@ -88,46 +88,36 @@ git clone https://github.com/evgeny-bakin/GeMaTrIA.git ./gematria
 cd gematria
 ```
 
-### Makegms
+### Bloom GMS-Maker
 
-The `makegms` module generates a raw binary track where the `false` correspond to repeating regions, and the `true` correspond to unique regions in the genome for a given length of the read.
+The `bloomgms` module generates a raw binary track where the `false` 
+correspond to repeating regions, and the `true` correspond to unique regions 
+in the genome for a given length of the read.
 
-Build as a python module:
+#### Installation:
 
 ```bash
-cd makegms/
-rm -rf makegms.egg-* dist build
-python3 setup.py build
-python3 setup.py install
-
-# Testing:
-cd ../
-python3 ./test/makegms.test.py
+pip3 install --user git+https://github.com/latur/BloomGMS
 ```
 
-Example of module usage
+#### Usage:
 
 ```python
-import makegms
-track = makegms.run('input.file.fasta', read=100, threads=4)
+import bloomgms
+track = bloomgms.make('./human.fa', read=100, quality=12)
+# Output: track = [0,0,0,0,1,1,1,0,0,0,0,0,1,1,1, ...]
 ```
 
-Build as an independent application:
+`./human.fa` — Is the path to the file with the fasta format genome  
+`read=10` — Read size  
+`quality=12` — Constant for used memory. For example, if 12 is specified, 
+then 12 x (genome size) memory will be used for the Bloom filter.
 
-```bash
-cd makegms/src/
-gcc -pthread -std=c99 -m64 -O main.c -lm \
-  -o ../../exe/makegms.exe
-
-# Memory leak testing:
-cd ../../
-valgrind --leak-check=full --show-leak-kinds=all \
- ./exe/makegms.exe ./test/example.fa 10 1
-```
 
 ### Gematria.py
 
-Python wrapper for makegms. The script uses the contents of the folder `/include` and auxiliary applications from the `/exe` folder.
+Python wrapper for bloomgms. The script uses the contents of the 
+folder `/include` and auxiliary applications from the `/exe` folder.
 
 ```bash
 # Running the script on test data with various parameters
@@ -142,21 +132,3 @@ If you find it convenient to compile all the code into one script (`gematria.sta
 python3 build.py
 chmod +x gematria.standalone.py
 ```
-
-## Our team
-
-This tool was developed by joint efforts of Evgeny Bakin<sup>1</sup>, Natalia Zorina<sup>2</sup>, Elizaveta Skalon<sup>2</sup>, Michael Utman<sup>3</sup> and Vyacheslav Batunov<sup>4</sup> under general supervision of Alexander Predeus<sup>1</sup>. 
-
-[1] Bioinformatics institute, Saint-Petersburg, Russia  
-[2] Saint-Petersburg State University (SPbU), Russia  
-[3] Saint-Petersburg Academic University (SPbAU), Russia  
-[4] Saint-Petersburg State University of Aerospace Instrumentation (SUAI), Russia
-
-## TBD
- 
- [-] Improve speed of output files generation.  
- [-] Debug multithreading for large genomes.  
- [+] Make code more readable.  
- [-] Add more reallistic insertion size distributions.  
- [-] Add erroneous reads support.  
- [-] Add automatic generation of Circos plot.

@@ -51,7 +51,7 @@ class App():
     def intro(self):
         self.echo('Gematria\nCommand executed:\n', 'white_bold')
         self.echo('{app}'.format(app=sys.argv[0]), 'white')
-        for nm in ['input', 'output', 'formats', 'length', 'threads', 'reads']:
+        for nm in ['input', 'output', 'formats', 'length', 'quality', 'reads']:
             self.echo(" --{0} {1}".format(nm, self.argx[nm]), 'white')
         self.echo('\n\n')
         
