@@ -27,8 +27,7 @@ track = bloomgms.make(app.argx['input'],
                       read=app.argx['length'],
                       quality=int(app.argx['quality']))
 
-# os.system('./exe/makegms.exe {0} {1} {2}'.format(app.argx['input'], 
-#            app.argx['length'], int(app.argx['threads'])))
+# os.system('./exe/bloomgms {0} {1} {2}'.format(app.argx['input'], app.argx['length'], int(app.argx['quality'])))
 # track = np.unpackbits(np.fromfile('./track.bin', dtype = "uint8"))
 # os.remove('./track.bin')
 
