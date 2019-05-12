@@ -35,7 +35,7 @@ chmod +x gematria.py
 
 ### Optional arguments
 
-```bash
+```
 -i, --input    Path to `genome.fasta` file
 -l, --length   Read length. Default: 100
 -q, --quality  Memory usage: quality * genome size. Default: 12
