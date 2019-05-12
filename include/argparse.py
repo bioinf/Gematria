@@ -152,5 +152,6 @@ def check_exe(root):
               '    https://www.oracle.com/technetwork/java/javase/downloads/index.html'
             ]))
             del(outputs['tdf'])
+        java_exists.close()
 
     return [igvtools, bed2bigbed]
