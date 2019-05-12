@@ -2,7 +2,7 @@
 import os
 import time
 
-import bloomgms
+import makegms
 import numpy as np
 
 
@@ -159,6 +159,7 @@ args = [
   ['-i', '--input', 'Path to `genome.fasta` file'],
   ['-l', '--length', 'Read length. Default: 100'],
   ['-q', '--quality', 'Memory usage: quality * genome size. Default: 12'],
+  ['-t', '--threads', 'Number of threads. Default: auto'],
   ['-o', '--output', 'Output filenames without extension'],
   ['-f', '--formats', 'Comma separated output formats',
                       'Acceptable: wig, bigwig, bed, tdf, bigbed, all'],
@@ -168,9 +169,10 @@ args = [
                     'U:min:max - for Uniform distribution of insertion size'],
   ['-h', '--help', 'Show this help']]
 demo = [
-  './test/example.fa -l 5 -o result -f bw,bed,tdf',
+  '-i ./test/example.fa -l 5 -o result -f bw,bed,tdf',
   '-i ./test/example.fa -l 7 -r U:10:25',
-  '-i ./test/example.fa -l 50',
+  '-i ./test/example.fa -l 50 -q 0 -t 2',
+  '-i ./test/example.fa -l 20 -q 4 -t 0',
   '-i ./test/ecoli.fa -r N:40:20 -l 15']
 
 app = App(init, args, demo)
@@ -198,6 +200,7 @@ if 'wig' in outputs:
         stop('Python module pyBigWig not found')
 
 app.default('reads', 'S')
+
 try:
     # Single-end reads
     if app.argx['reads'][0] == 'S':
@@ -228,7 +231,8 @@ try:
 except:
     app.exit('Unable to parse reads type parameters [--reads]')
 
-app.default('quality', 12)
+app.default('quality', 4)
+app.default('threads', os.sysconf('SC_NPROCESSORS_ONLN'))
 app.default('length', 100)
 app.argx['length'] = int(app.argx['length'])
 
@@ -253,7 +257,7 @@ def download(src, dst, iexec=False):
     app.error_log('Download error: ' + dst)
     return False
 
-
+# --------------------------------------------------------------------------- #
 def check_exe(root):
     root = os.path.dirname(os.path.abspath(root))
     
@@ -291,6 +295,13 @@ def check_exe(root):
             app.error_log('Executable `igvtools` not found')
             if not download(src, igvtools):
                 del(outputs['tdf'])
+
+        if os.popen("java 2>&1").read().find('Usage') == -1:
+            app.error_log("".join([
+              'Install Java JDK if you want to export results as tdf file\n'
+              '    https://www.oracle.com/technetwork/java/javase/downloads/index.html'
+            ]))
+            del(outputs['tdf'])
 
     return [igvtools, bed2bigbed]
 # --------------------------------------------------------------------------- #
@@ -335,11 +346,9 @@ class Write():
         self.h.addEntries(chr, [pos-1], values=[val], span=span, step=1)
 
     # ----------------------------------------------------------------------- #
-    def add(self, chr, gms):
-        gms = np.insert(gms, 0, -1)
-        ggg = np.convolve(gms, np.array([-1, 1]))
+    def add(self, chr, gms, zer):
         prev = 0
-        for i in np.nonzero(ggg[2:-1])[0]:
+        for i in zer:
             add = getattr(self, '_' + self.ext)
             add(chr, int(prev + 1), int(i - prev + 1), float(gms[prev + 1]))
             prev = i + 1
@@ -350,26 +359,18 @@ started = time.time()
 app.intro()
 igvtools, bed2bigbed = check_exe(__file__)
 
+if len(outputs) == 0:
+    app.exit('The specified export formats cannot be generated.')
+
+# --------------------------------------------------------------------------- #
+
 begin = time.time()
 app.log('Get contents of fasta file: ' + app.argx['input'])
 fasta = app.fasta()
 app.success_log('File loaded: {0:.2f}sec.'.format(time.time() - begin))
 
-begin = time.time()
-app.log('Making raw GMS-track')
-
-track = bloomgms.make(app.argx['input'],
-                      read=app.argx['length'],
-                      quality=int(app.argx['quality']))
-
-# os.system('./exe/bloomgms {0} {1} {2}'.format(app.argx['input'], app.argx['length'], int(app.argx['quality'])))
-# track = np.unpackbits(np.fromfile('./track.bin', dtype = "uint8"))
-# os.remove('./track.bin')
-
-app.success_log('GMS-track is created: {0:.2f}sec.'.format(time.time()-begin))
-
-
 # --------------------------------------------------------------------------- #
+
 fs = {}
 for k in outputs:
     if k in ['wig', 'bw', 'bed']:
@@ -386,10 +387,20 @@ if 'bigbed' in outputs and 'bed' not in fs:
 if 'bw' in outputs:
     fs['bw'].h.addHeader([(chr, size) for chr, size, name in fasta])
 
+# --------------------------------------------------------------------------- #
+
+begin = time.time()
+app.log('Making raw GMS-track')
+track = makegms.run(app.argx['input'],
+                    read=app.argx['length'],
+                    quality=int(app.argx['quality']),
+                    threads=int(app.argx['threads']))
+
+app.success_log('GMS-track is created: {0:.2f}sec.'.format(time.time()-begin))
 
 # --------------------------------------------------------------------------- #
-app.log('Splitting raw GMS-track to chromosomes')
 
+app.log('Splitting raw GMS-track to chromosomes')
 mask = 100 * np.ones(app.argx['length']) / app.argx['length']
 index = 0
 for chr, lng, name in fasta:
@@ -409,8 +420,10 @@ for chr, lng, name in fasta:
         final = subseq + (np.ones(reads) - subseq) * (left + right) / 2
 
     gms = np.append(np.round(np.convolve(final, mask)), [-1])
+    gms = np.insert(gms, 0, -1)
+    zer = np.nonzero(np.convolve(gms, np.array([-1, 1]))[2:-1])[0]
     for key in fs:
-        fs[key].add(chr, gms)
+        fs[key].add(chr, gms, zer)
 
     app.echo('[+] Chr: ' + name, 'green')
     app.echo(' [{0:.2f}sec.]\n'.format(time.time()-begin), 'green_bold')
@@ -420,6 +433,7 @@ for key in fs:
 
 
 # --------------------------------------------------------------------------- #
+
 size_ = False
 if 'tdf' in outputs or 'bigbed' in outputs:
     size_ = '.__temporary.chrom.sizes'
@@ -469,11 +483,16 @@ if 'bigbed' in outputs:
 
 if size_:
     os.remove(size_)
-    
-app.echo('\nGematria has finished.\nElapsed time: ', 'white_bold')
+
+app.echo('\nGematria has finished. Results:\n', 'white_bold')
+for f in outputs:
+    app.echo('[#] ' + outputs[f] + '\n', 'white')
+
+app.echo('\nElapsed time: ', 'white_bold')
 app.echo('{0:.2f}sec.\n'.format(time.time()-started), 'white_bold')
 
 # --------------------------------------------------------------------------- #
+
 if app._debug:
     time.sleep(1)
     inf = 'cat /proc/{pid}/status | grep "VmHWM" | xargs'
