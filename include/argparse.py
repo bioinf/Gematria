@@ -145,7 +145,8 @@ def check_exe(root):
             if not download(src, igvtools):
                 del(outputs['tdf'])
 
-        if os.popen("java 2>&1").read().find('Usage') == -1:
+        java_exists = os.popen("java 2>&1")
+        if java_exists.read().find('Usage') == -1:
             app.error_log("".join([
               'Install Java JDK if you want to export results as tdf file\n'
               '    https://www.oracle.com/technetwork/java/javase/downloads/index.html'

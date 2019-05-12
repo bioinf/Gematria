@@ -130,11 +130,12 @@ can locally install the python and the required extensions as follows:
 git clone https://github.com/python/cpython.git
 cd cpython && git checkout origin/3.7
 
-./configure --with-pydebug && make -j
+./configure --with-pydebug && make -j && cd ../
 wget https://bootstrap.pypa.io/get-pip.py
 
 ./cpython/python get-pip.py --user
-./cpython/python .local/bin/pip3.7 install --user git+https://github.com/latur/MakeGMS numpy pyBigWig
+./cpython/python .local/bin/pip3.7 \
+  install --user git+https://github.com/latur/MakeGMS numpy pyBigWig
 ```
 
 ### Gematria
