@@ -1,5 +1,6 @@
-# Gematria
-**Ge**nome **Ma**ppability **Tr**ack **I**nstant **A**nalysis
+![Gematria Logo](https://raw.githubusercontent.com/latur/Gematria/master/support/logo.png)
+
+> **Ge**nome **Ma**ppability **Tr**ack **I**nstant **A**nalysis
 
 ## What is mappability?
 
@@ -47,7 +48,7 @@ chmod +x gematria.py
 -h, --help     Show this help
 ```
 
-### Examples:
+## Examples:
 
 Run with default parameters
 
