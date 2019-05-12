@@ -36,15 +36,9 @@ class Write():
         self.h.addEntries(chr, [pos-1], values=[val], span=span, step=1)
 
     # ----------------------------------------------------------------------- #
-    def add(self, chr, gms):
-        repeats = 1
-        repeats_init = 0
-
-        for i in range(len(gms) - 1):
-            if gms[i] == gms[i+1]:
-                repeats += 1
-                continue
+    def add(self, chr, gms, zer):
+        prev = 0
+        for i in zer:
             add = getattr(self, '_' + self.ext)
-            add(chr, repeats_init + 1, repeats, gms[i])
-            repeats = 1
-            repeats_init = i + 1
+            add(chr, int(prev + 1), int(i - prev + 1), float(gms[prev + 1]))
+            prev = i + 1

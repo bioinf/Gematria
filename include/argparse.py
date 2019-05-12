@@ -8,6 +8,7 @@ args = [
   ['-i', '--input', 'Path to `genome.fasta` file'],
   ['-l', '--length', 'Read length. Default: 100'],
   ['-q', '--quality', 'Memory usage: quality * genome size. Default: 12'],
+  ['-t', '--threads', 'Number of threads. Default: auto'],
   ['-o', '--output', 'Output filenames without extension'],
   ['-f', '--formats', 'Comma separated output formats',
                       'Acceptable: wig, bigwig, bed, tdf, bigbed, all'],
@@ -17,9 +18,10 @@ args = [
                     'U:min:max - for Uniform distribution of insertion size'],
   ['-h', '--help', 'Show this help']]
 demo = [
-  './test/example.fa -l 5 -o result -f bw,bed,tdf',
+  '-i ./test/example.fa -l 5 -o result -f bw,bed,tdf',
   '-i ./test/example.fa -l 7 -r U:10:25',
-  '-i ./test/example.fa -l 50',
+  '-i ./test/example.fa -l 50 -q 0 -t 2',
+  '-i ./test/example.fa -l 20 -q 4 -t 0',
   '-i ./test/ecoli.fa -r N:40:20 -l 15']
 
 app = App(init, args, demo)
@@ -47,6 +49,7 @@ if 'wig' in outputs:
         stop('Python module pyBigWig not found')
 
 app.default('reads', 'S')
+
 try:
     # Single-end reads
     if app.argx['reads'][0] == 'S':
@@ -77,7 +80,8 @@ try:
 except:
     app.exit('Unable to parse reads type parameters [--reads]')
 
-app.default('quality', 12)
+app.default('quality', 4)
+app.default('threads', os.sysconf('SC_NPROCESSORS_ONLN'))
 app.default('length', 100)
 app.argx['length'] = int(app.argx['length'])
 
@@ -102,7 +106,7 @@ def download(src, dst, iexec=False):
     app.error_log('Download error: ' + dst)
     return False
 
-
+# --------------------------------------------------------------------------- #
 def check_exe(root):
     root = os.path.dirname(os.path.abspath(root))
     
@@ -140,5 +144,12 @@ def check_exe(root):
             app.error_log('Executable `igvtools` not found')
             if not download(src, igvtools):
                 del(outputs['tdf'])
+
+        if os.popen("java 2>&1").read().find('Usage') == -1:
+            app.error_log("".join([
+              'Install Java JDK if you want to export results as tdf file\n'
+              '    https://www.oracle.com/technetwork/java/javase/downloads/index.html'
+            ]))
+            del(outputs['tdf'])
 
     return [igvtools, bed2bigbed]

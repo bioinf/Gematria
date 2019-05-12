@@ -2,8 +2,8 @@
 import os
 
 root = os.path.dirname(os.path.abspath(__file__)) + '/../'
-init = "{root}gematria.py {root}test/example.fa".format(root=root)
-coli = "{root}gematria.py {root}test/ecoli.fa".format(root=root)
+init = "{root}gematria.py {root}support/example.fa".format(root=root)
+coli = "{root}gematria.py {root}support/ecoli.fa".format(root=root)
 
 
 def run(cmd):

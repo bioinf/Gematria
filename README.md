@@ -1,5 +1,5 @@
 # Gematria
-> Genome Mappability Track Instant Analysis
+**Ge**nome **Ma**ppability **Tr**ack **I**nstant **A**nalysis
 
 ## What is mappability?
 
@@ -19,9 +19,8 @@ insertion size improves mappability as well).
 ### Installation (for Python3)
 
 ```bash
-pip3 install --user git+https://github.com/latur/BloomGMS
-pip3 install numpy pyBigWig
-curl https://raw.githubusercontent.com/evgeny-bakin/GeMaTrIA/bloom/gematria.standalone.py > gematria.py
+pip3 install --user git+https://github.com/latur/MakeGMS numpy pyBigWig
+curl https://raw.githubusercontent.com/latur/Gematria/master/gematria.standalone.py > gematria.py
 chmod +x gematria.py
 ```
 
@@ -36,6 +35,7 @@ chmod +x gematria.py
 ```bash
 -i, --input    Path to `genome.fasta` file
 -l, --length   Read length. Default: 100
+-q, --quality  Memory usage: quality * genome size. Default: 12
 -t, --threads  Number of threads. Default: auto
 -o, --output   Output filenames without extension
 -f, --formats  Comma separated output formats
@@ -49,83 +49,116 @@ chmod +x gematria.py
 
 ### Examples:
 
-```bash
-# Run of Gematria for 5bp single-end reads 
-# with a result saving in a bigWig, bed, tdf files:
-./gematria.py ./test/example.fa -l 5 -o result -f bw,bed,tdf
+Run with default parameters
 
-# Calculate mappability for 7bp paired-end reads with 10..25bp insertion size:
-# the result will be saved to file ./test/example.fa.wig
-./gematria.py -i ./test/example.fa -l 7 -r U:10:25
+```bash
+./gematria.py ./support/example.fa
 ```
+
+Read size determination `-l 20`
+
+```bash
+./gematria.py ./support/example.fa -l 20
+```
+
+Define prefix for result files `-o prefix-string`
+
+```bash
+./gematria.py ./support/example.fa -o results-filename
+```
+
+By default, the result is saved to the .wig file. 
+You can specify additional export formats `-f all`
+
+```bash
+./gematria.py ./support/example.fa -f bigbed
+./gematria.py ./support/example.fa -f bigwig,bed,tdf
+./gematria.py ./support/example.fa -f all
+```
+
+The default mappability calculation is for single-end reads `-r S`. 
+
+For paired reads, you can specify the insert size. 
+For example, if the insert size is normally distributed 
+with an average = 30 and sigma = 10, use the following parameter: `-r N:30:10`
+
+```bash
+./gematria.py ./support/example.fa -r N:30:10
+```
+
+For uniform distribution use the parameter: `-r U:from:to`
+
+```bash
+./gematria.py ./support/example.fa -r U:10:20
+```
+
+Inside the program there are [two ways](https://github.com/latur/MakeGMS#algorithm-description) to calculate mappability track. 
+You can determine the number of threads `-t 8` and the quality of filtering `-q 4`.
+The method will be automatically selected depending on these parameters.
+
+Do not specify the number of threads more than you have free processors. 
+Be careful when specifying the quality of the filter. The amount of memory allocated to an application depends on this parameter.
+
+```bash
+./gematria.py ./support/example.fa -t 12 -q 3
+```
+
+If you want to use exactly the [approach with Filters](https://github.com/latur/MakeGMS#bloom-based-method), specify `-t 0`
+
+```bash
+./gematria.py ./support/example.fa -t 0 -q 4
+```
+
+If you want to use the [QuickSort-approach](https://github.com/latur/MakeGMS#qsort-based-method), specify `-q 0`
+
+```bash
+./gematria.py ./support/example.fa -t 24 -q 0
+```
+
 
 ## Installation without a superuser
 
 if you are working on a shared server, and you do not have root access, you 
 can locally install the python and the required extensions as follows:
 
+### Python3, pip, Packages
+
 ```bash
-# Python
 git clone https://github.com/python/cpython.git
-cd cpython && ./configure --with-pydebug && make -j
+cd cpython && git checkout origin/3.7
 
-# Pip
+./configure --with-pydebug && make -j
 wget https://bootstrap.pypa.io/get-pip.py
+
 ./cpython/python get-pip.py --user
+./cpython/python .local/bin/pip3.7 install --user git+https://github.com/latur/MakeGMS numpy pyBigWig
+```
 
-# Packages
-./cpython/python .local/bin/pip3.8 install numpy pyBigWig git+https://github.com/latur/BloomGMS --user
+### Gematria
 
-# Gematria
-curl https://raw.githubusercontent.com/evgeny-bakin/GeMaTrIA/bloom/gematria.standalone.py > gematria.py
+```bash
+curl https://raw.githubusercontent.com/latur/Gematria/master/gematria.standalone.py > gematria.py
 ./cpython/python gematria.py
 ```
 
 ## Development
 
 ```bash
-git clone https://github.com/evgeny-bakin/GeMaTrIA.git ./gematria
+git clone https://github.com/latur/Gematria.git ./gematria
 cd gematria
 ```
 
-### Bloom GMS-Maker
+### Quick tests
 
-The `bloomgms` module generates a raw binary track where the `false` 
-correspond to repeating regions, and the `true` correspond to unique regions 
-in the genome for a given length of the read.
-
-#### Installation:
+Run gematria with different parameters:
 
 ```bash
-pip3 install --user git+https://github.com/latur/BloomGMS
+python3 ./support/gematria.test.py
 ```
-
-#### Usage:
-
-```python
-import bloomgms
-track = bloomgms.make('./human.fa', read=100, quality=12)
-# Output: track = [0,0,0,0,1,1,1,0,0,0,0,0,1,1,1, ...]
-```
-
-`./human.fa` — Is the path to the file with the fasta format genome  
-`read=10` — Read size  
-`quality=12` — Constant for used memory. For example, if 12 is specified, 
-then 12 x (genome size) memory will be used for the Bloom filter.
-
 
 ### Gematria.py
 
-Python wrapper for bloomgms. The script uses the contents of the 
-folder `/include` and auxiliary applications from the `/exe` folder.
-
-```bash
-# Running the script on test data with various parameters
-python3 ./test/gematria.test.py
-```
-
-### Gematria.standalone.py
-
+The script uses the contents of the folder `/include` and auxiliary applications from the `/exe` folder.
 If you find it convenient to compile all the code into one script (`gematria.standalone.py`) and use it, run the command:
 
 ```bash

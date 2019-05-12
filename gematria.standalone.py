@@ -336,17 +336,13 @@ class Write():
 
     # ----------------------------------------------------------------------- #
     def add(self, chr, gms):
-        repeats = 1
-        repeats_init = 0
-
-        for i in range(len(gms) - 1):
-            if gms[i] == gms[i+1]:
-                repeats += 1
-                continue
+        gms = np.insert(gms, 0, -1)
+        ggg = np.convolve(gms, np.array([-1, 1]))
+        prev = 0
+        for i in np.nonzero(ggg[2:-1])[0]:
             add = getattr(self, '_' + self.ext)
-            add(chr, repeats_init + 1, repeats, gms[i])
-            repeats = 1
-            repeats_init = i + 1
+            add(chr, int(prev + 1), int(i - prev + 1), float(gms[prev + 1]))
+            prev = i + 1
 
 
 started = time.time()

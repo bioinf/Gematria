@@ -2,7 +2,7 @@
 import os
 import time
 
-import bloomgms
+import makegms
 import numpy as np
 
 
@@ -15,26 +15,18 @@ started = time.time()
 app.intro()
 igvtools, bed2bigbed = check_exe(__file__)
 
+if len(outputs) == 0:
+    app.exit('The specified export formats cannot be generated.')
+
+# --------------------------------------------------------------------------- #
+
 begin = time.time()
 app.log('Get contents of fasta file: ' + app.argx['input'])
 fasta = app.fasta()
 app.success_log('File loaded: {0:.2f}sec.'.format(time.time() - begin))
 
-begin = time.time()
-app.log('Making raw GMS-track')
-
-track = bloomgms.make(app.argx['input'],
-                      read=app.argx['length'],
-                      quality=int(app.argx['quality']))
-
-# os.system('./exe/bloomgms {0} {1} {2}'.format(app.argx['input'], app.argx['length'], int(app.argx['quality'])))
-# track = np.unpackbits(np.fromfile('./track.bin', dtype = "uint8"))
-# os.remove('./track.bin')
-
-app.success_log('GMS-track is created: {0:.2f}sec.'.format(time.time()-begin))
-
-
 # --------------------------------------------------------------------------- #
+
 fs = {}
 for k in outputs:
     if k in ['wig', 'bw', 'bed']:
@@ -51,10 +43,20 @@ if 'bigbed' in outputs and 'bed' not in fs:
 if 'bw' in outputs:
     fs['bw'].h.addHeader([(chr, size) for chr, size, name in fasta])
 
+# --------------------------------------------------------------------------- #
+
+begin = time.time()
+app.log('Making raw GMS-track')
+track = makegms.run(app.argx['input'],
+                    read=app.argx['length'],
+                    quality=int(app.argx['quality']),
+                    threads=int(app.argx['threads']))
+
+app.success_log('GMS-track is created: {0:.2f}sec.'.format(time.time()-begin))
 
 # --------------------------------------------------------------------------- #
-app.log('Splitting raw GMS-track to chromosomes')
 
+app.log('Splitting raw GMS-track to chromosomes')
 mask = 100 * np.ones(app.argx['length']) / app.argx['length']
 index = 0
 for chr, lng, name in fasta:
@@ -74,8 +76,10 @@ for chr, lng, name in fasta:
         final = subseq + (np.ones(reads) - subseq) * (left + right) / 2
 
     gms = np.append(np.round(np.convolve(final, mask)), [-1])
+    gms = np.insert(gms, 0, -1)
+    zer = np.nonzero(np.convolve(gms, np.array([-1, 1]))[2:-1])[0]
     for key in fs:
-        fs[key].add(chr, gms)
+        fs[key].add(chr, gms, zer)
 
     app.echo('[+] Chr: ' + name, 'green')
     app.echo(' [{0:.2f}sec.]\n'.format(time.time()-begin), 'green_bold')
@@ -85,6 +89,7 @@ for key in fs:
 
 
 # --------------------------------------------------------------------------- #
+
 size_ = False
 if 'tdf' in outputs or 'bigbed' in outputs:
     size_ = '.__temporary.chrom.sizes'
@@ -134,11 +139,16 @@ if 'bigbed' in outputs:
 
 if size_:
     os.remove(size_)
-    
-app.echo('\nGematria has finished.\nElapsed time: ', 'white_bold')
+
+app.echo('\nGematria has finished. Results:\n', 'white_bold')
+for f in outputs:
+    app.echo('[#] ' + outputs[f] + '\n', 'white')
+
+app.echo('\nElapsed time: ', 'white_bold')
 app.echo('{0:.2f}sec.\n'.format(time.time()-started), 'white_bold')
 
 # --------------------------------------------------------------------------- #
+
 if app._debug:
     time.sleep(1)
     inf = 'cat /proc/{pid}/status | grep "VmHWM" | xargs'
