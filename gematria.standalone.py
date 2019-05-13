@@ -70,7 +70,7 @@ class App():
     def intro(self):
         self.echo('Gematria\nCommand executed:\n', 'white_bold')
         self.echo('{app}'.format(app=sys.argv[0]), 'white')
-        for nm in ['input', 'output', 'formats', 'length', 'quality', 'reads']:
+        for nm in ['input', 'output', 'formats', 'length', 'quality', 'threads', 'reads']:
             self.echo(" --{0} {1}".format(nm, self.argx[nm]), 'white')
         self.echo('\n\n')
         
@@ -169,11 +169,11 @@ args = [
                     'U:min:max - for Uniform distribution of insertion size'],
   ['-h', '--help', 'Show this help']]
 demo = [
-  '-i ./test/example.fa -l 5 -o result -f bw,bed,tdf',
-  '-i ./test/example.fa -l 7 -r U:10:25',
-  '-i ./test/example.fa -l 50 -q 0 -t 2',
-  '-i ./test/example.fa -l 20 -q 4 -t 0',
-  '-i ./test/ecoli.fa -r N:40:20 -l 15']
+  '-i ./support/example.fa -l 5 -o result -f bw,bed,tdf',
+  '-i ./support/example.fa -l 7 -r U:10:25',
+  '-i ./support/example.fa -l 50 -q 0 -t 2',
+  '-i ./support/example.fa -l 20 -q 4 -t 0',
+  '-i ./support/ecoli.fa -r N:40:20 -l 15']
 
 app = App(init, args, demo)
 
