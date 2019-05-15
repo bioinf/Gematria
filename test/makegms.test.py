@@ -7,10 +7,10 @@ import numpy as np
 
 
 class Test():
-    def __init__(self, desc, seq, read=20):
+    def __init__(self, desc, seq, read=10, quality=3):
         sys.stdout.write("\033[32m- {0}\033[0m".format(desc))
         self.write(seq)
-        track = makegms.run(self.fp.name, read=read, threads=1)
+        track = makegms.run(self.fp.name, read=read, quality=quality)
         self.validate(track, seq, read)
         os.remove(self.fp.name)
 
@@ -55,14 +55,32 @@ class Unique(type):
 
 # --------------------------------------------------------------------------- #
 
-Test('Track #1 (Repeats only)', 'T' * 1000)
-Test('Track #2 (Repeats only)', 'AT' * 50000)
-Test('Track #3 (Repeats only)', 'GGC' * 100000)
+print("\n- Repeats only")
 
-Test('Track #4 (No repeats)  ', Unique(100))
-Test('Track #5 (No repeats)  ', Unique(1000))
-Test('Track #6 (No repeats)  ', Unique(10000))
+Test('Track #1 | Bloom ', 'T' * 1000)
+Test('Track #2 | Bloom ', 'AT' * 50000)
+Test('Track #3 | Bloom ', 'GGGGC' * 100000)
 
-Test('Track #7 (Mixed reads) ', ('A' * 500) + Unique(500) + ('GC' * 250))
-Test('Track #8 (Mixed reads) ', Unique(500) + ('T' * 10000) + Unique(50))
-Test('Track #9 (Mixed reads) ', Unique(100) + ('AAAT' * 500))
+Test('Track #1 | Qsort ', 'T' * 1000, 10, 0)
+Test('Track #2 | Qsort ', 'AT' * 50000, 10, 0)
+Test('Track #3 | Qsort ', 'GGGGC' * 100000, 10, 0)
+
+print("\n- No repeats")
+
+Test('Track #4 | Bloom ', Unique(100))
+Test('Track #5 | Bloom ', Unique(1000))
+Test('Track #6 | Bloom ', Unique(10000))
+
+Test('Track #4 | Qsort ', Unique(100), 10, 0)
+Test('Track #5 | Qsort ', Unique(1000), 10, 0)
+Test('Track #6 | Qsort ', Unique(10000), 10, 0)
+
+print("\n- Mixed reads")
+
+Test('Track #7 | Bloom ', ('A' * 500) + Unique(500) + ('GC' * 250))
+Test('Track #8 | Bloom ', Unique(500) + ('T' * 10000) + Unique(50))
+Test('Track #9 | Bloom ', Unique(100) + ('AAAT' * 500))
+
+Test('Track #7 | Qsort ', ('A' * 500) + Unique(500) + ('GC' * 250), 10, 0)
+Test('Track #8 | Qsort ', Unique(500) + ('T' * 10000) + Unique(50), 10, 0)
+Test('Track #9 | Qsort ', Unique(100) + ('AAAT' * 500), 10, 0)

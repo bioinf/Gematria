@@ -8,4 +8,4 @@ while kill -0 $pid 2> /dev/null; do
     sleep 1
 done
 trap - EXIT
-echo $(cat ./memory_usage_$pid)
+echo $(wc -l ./memory_usage_$pid)

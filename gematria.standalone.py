@@ -169,11 +169,9 @@ args = [
                     'U:min:max - for Uniform distribution of insertion size'],
   ['-h', '--help', 'Show this help']]
 demo = [
-  '-i ./support/example.fa -l 5 -o result -f bw,bed,tdf',
-  '-i ./support/example.fa -l 7 -r U:10:25',
-  '-i ./support/example.fa -l 50 -q 0 -t 2',
-  '-i ./support/example.fa -l 20 -q 4 -t 0',
-  '-i ./support/ecoli.fa -r N:40:20 -l 15']
+  './genome.fa',
+  './genome.fa -l 10 -r U:10:25 -f bw,bed,tdf',
+  './genome.fa -l 15 -r N:40:20 -o result -q 3 -t 8 -f all']
 
 app = App(init, args, demo)
 

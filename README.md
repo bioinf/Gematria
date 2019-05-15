@@ -1,4 +1,4 @@
-![Gematria Logo](https://raw.githubusercontent.com/latur/Gematria/master/support/logo-center.jpg)
+![Gematria Logo](https://raw.githubusercontent.com/latur/Gematria/master/assets/logo-center.jpg)
 
 -----------------------------------------------------------
 
