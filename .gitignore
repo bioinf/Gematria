@@ -1,4 +1,6 @@
+build
+dist
+makegms.egg-info
+_config.yml
+.DS_Store
 __pycache__
-/include/__pycache__/
-_genomes
-_results
