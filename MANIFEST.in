@@ -1,1 +1,1 @@
-include makegms/src/*.c
+include makegms/*.c
