@@ -5,10 +5,8 @@ import time
 import makegms
 import numpy as np
 
-
 from include.argparse import *
 from include.write import *
-
 
 started = time.time()
 
@@ -67,7 +65,7 @@ for chr, lng, name in fasta:
     subseq = track[index:index+reads]
     index += lng
 
-    if app.argx['reads'][0] == 'S':
+    if app.argx['paired'] == 'S':
         final = subseq
     else:
         unique = np.convolve(subseq, kernel)
@@ -109,8 +107,6 @@ if 'tdf' in outputs:
     ]))
     
     os.remove('igv.log')
-    if fs['wig'].h.name[0:3] == '.__':
-        os.remove(fs['wig'].h.name)
     
     app.success_log('Done: {0:.2f}sec.'.format(time.time()-begin))
 
@@ -130,9 +126,6 @@ if 'bigbed' in outputs:
       "> /dev/null 2>&1"
     ]))
 
-    if fs['bed'].h.name[0:3] == '.__':
-        os.remove(fs['bed'].h.name)
-
     os.remove(fs['bed'].h.name + '.sorted')
 
     app.success_log('Done: {0:.2f}sec.'.format(time.time()-begin))
@@ -142,7 +135,10 @@ if size_:
 
 app.echo('\nGematria has finished. Results:\n', 'white_bold')
 for f in outputs:
-    app.echo('[#] ' + outputs[f] + '\n', 'white')
+    if outputs[f][0:3] == '.__':
+        os.remove(outputs[f])
+    else:
+        app.echo(outputs[f] + '\n', 'white')
 
 app.echo('\nElapsed time: ', 'white_bold')
 app.echo('{0:.2f}sec.\n'.format(time.time()-started), 'white_bold')

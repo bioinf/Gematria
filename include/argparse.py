@@ -5,22 +5,24 @@ from include.app import *
 
 init = '[fasta file] [Optional arguments]'
 args = [
-  ['-i', '--input', 'Path to `genome.fasta` file'],
   ['-l', '--length', 'Read length. Default: 100'],
-  ['-q', '--quality', 'Memory usage: quality * genome size. Default: 12'],
   ['-t', '--threads', 'Number of threads. Default: auto'],
-  ['-o', '--output', 'Output filenames without extension'],
-  ['-f', '--formats', 'Comma separated output formats',
-                      'Acceptable: wig, bigwig, bed, tdf, bigbed, all'],
-  ['-r', '--reads', 'Reads type parameters in the following format:',
-                    'S - for single-end reads',
-                    'N:mu:sigma - for Normal distribution of insertion size',
-                    'U:min:max - for Uniform distribution of insertion size'],
-  ['-h', '--help', 'Show this help']]
+  ['-o', '--output', 'Output formats: [wig],bigwig,bed,tdf,bigbed,all'],
+  ['-p', '--paired', 'To use paired end reads, specify the insert size',
+                     'and the standard deviation (normal distribution model)',
+                     'If you don’t know where to start, use -p 300,100'],
+  ['-m', '--lowmem', 'Use the RAM-memory saving algorithm. Default: none',
+                     '  -m hard / will be used ~ 5 × Genome Size',
+                     '  -m soft / will be used ~ 7 × Genome Size',
+                     'Specifying this parameter in the value hard or soft ',
+                     'makes it impossible to use multithreading.'],
+  ['-h', '--help', 'Show this help'],
+  ['-v', '--version', 'Show version number']
+]
 demo = [
-  './genome.fa',
-  './genome.fa -l 10 -r U:10:25 -f bw,bed,tdf',
-  './genome.fa -l 15 -r N:40:20 -o result -q 3 -t 8 -f all']
+  'genome.fa',
+  'genome.fa -l 10 -o bw,bed,tdf -t 8',
+  'genome.fa --length 15 --paired 50,10 --lowmem hard --output all']
 
 app = App(init, args, demo)
 
@@ -29,16 +31,16 @@ app.default('input', sys.argv[1])
 if not os.path.isfile(app.argx['input']):
     app.exit('Input file not found: ' + app.argx['input'])
 
-app.default('output', app.argx['input'])
-app.default('formats', 'wig')
+app.default('output', 'wig')
+basename = os.path.splitext(app.argx['input'])[0]
 
 outputs = {}
-exts = app.argx['formats'].lower().replace('all', 'wig,bed,tdf,bw,bigbed')
+exts = app.argx['output'].lower().replace('all', 'wig,bed,tdf,bw,bigbed')
 for ext in exts.split(','):
     ext = ext.replace('bigwig', 'bw')
     if ext not in ['wig', 'bed', 'tdf', 'bw', 'bigbed']:
         continue
-    outputs[ext] = app.argx['output'] + '.' + ext
+    outputs[ext] = basename + '.' + ext
 
 if 'wig' in outputs:
     try:
@@ -46,42 +48,36 @@ if 'wig' in outputs:
     except ImportError:
         stop('Python module pyBigWig not found')
 
-app.default('reads', 'S')
+app.default('paired', 'S')
 
 try:
     # Single-end reads
-    if app.argx['reads'][0] == 'S':
+    if app.argx['paired'][0] == 'S':
         mdist, kernel = [0, [1]]
 
     # Normal distribution of insertions size
-    elif app.argx['reads'][0] == 'N':
+    else:
         from math import sqrt, pi, exp
-        mu, s = map(int, app.argx['reads'][2:].split(':'))
-
+        mu, s = map(int, app.argx['paired'].split(','))
         def k(i):
             return exp(-(float(i) - mu)**2 / (2 * s**2)) / (sqrt(2*pi)*s)
-
         mdist = mu - 3 * s
         ker = [k(i) for i in range(mdist, mu + 3 * s + 1)]
         mdist, kernel = [mdist if mdist > 0 else 0, ker]
-
-    # Uniform distribution of insertion size
-    # U:min:max
-    elif app.argx['reads'][0] == 'U':
-        v_min, v_max = map(int, app.argx['reads'][2:].split(':'))
-        ker = [1/(v_max - v_min)] * (v_max - v_min)
-        mdist, kernel = [v_min, ker]
-    
-    else:
-        raise Exception('Wrong parametrs: reads')
     
 except:
     app.exit('Unable to parse reads type parameters [--reads]')
 
-app.default('quality', 4)
 app.default('threads', os.sysconf('SC_NPROCESSORS_ONLN'))
 app.default('length', 100)
 app.argx['length'] = int(app.argx['length'])
+
+app.default('lowmem', 'none')
+app.argx['quality'] = {'hard': 3, 'soft': 5}.get(app.argx['lowmem'], 0)
+if app.argx['quality'] != 0:
+    app.argx['threads'] = 0
+
+# --------------------------------------------------------------------------- #
 
 if '--debug' in sys.argv:
     app._debug = sys.argv[sys.argv.index('--debug') + 1]

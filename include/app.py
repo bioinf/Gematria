@@ -17,6 +17,7 @@ class Unbuffered(object):
 class App():
     def __init__(self, init="", args=[], demo=[]):
         self._debug = False
+        self.version = 'v1.0 (cli) (built: 16.06.2019)'
         self.stderr = Unbuffered(sys.stderr)
         self.init = init
         self.demo = [[sys.argv[0], e] for e in demo]
@@ -39,6 +40,10 @@ class App():
         if len(argv) <= 1:
             self.exit('Kio okazas? (Specify arguments. Please)')
 
+        if argv[1] == 'version':
+            self.echo('Gematria {}\n'.format(self.version), 'white_bold')
+            sys.exit()
+
         if argv[1] == 'help':
             self.exit()
 
@@ -50,9 +55,14 @@ class App():
 
     def intro(self):
         self.echo('Gematria\nCommand executed:\n', 'white_bold')
-        self.echo('{app}'.format(app=sys.argv[0]), 'white')
-        for nm in ['input', 'output', 'formats', 'length', 'quality', 'threads', 'reads']:
+        self.echo('{app} {genome}'.format(app=sys.argv[0], genome=self.argx['input']), 'white')
+        if self.argx['quality'] == 0:
+            show = ['length', 'output', 'threads', 'paired']
+        else:
+            show = ['length', 'output', 'paired', 'lowmem']
+        for nm in show:
             self.echo(" --{0} {1}".format(nm, self.argx[nm]), 'white')
+            
         self.echo('\n\n')
         
     def fasta(self):

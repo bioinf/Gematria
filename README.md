@@ -2,7 +2,7 @@
 
 -----------------------------------------------------------
 
-> **Ge**nome **Ma**ppability **Tr**ack **I**nstant **A**nalysis
+# Genome Mappability Track Instant Analysis
 
 ## What is mappability?
 
@@ -22,8 +22,8 @@ insertion size improves mappability as well).
 ### Installation (for Python3)
 
 ```bash
-pip3 install --user git+https://github.com/latur/MakeGMS numpy pyBigWig
-curl https://raw.githubusercontent.com/latur/Gematria/master/gematria.standalone.py > gematria.py
+pip3 install --user git+https://github.com/bioinf/Gematria numpy pyBigWig
+curl https://raw.githubusercontent.com/bioinf/Gematria/master/gematria.standalone.py > gematria.py
 chmod +x gematria.py
 ```
 
@@ -36,18 +36,19 @@ chmod +x gematria.py
 ### Optional arguments
 
 ```
--i, --input    Path to `genome.fasta` file
 -l, --length   Read length. Default: 100
--q, --quality  Memory usage: quality * genome size. Default: 12
 -t, --threads  Number of threads. Default: auto
--o, --output   Output filenames without extension
--f, --formats  Comma separated output formats
-               Acceptable: wig, bigwig, bed, tdf, bigbed, all
--r, --reads    Reads type parameters in the following format:
-               S - for single-end reads
-               N:mu:sigma - for Normal distribution of insertion size
-               U:min:max - for Uniform distribution of insertion size
+-o, --output   Output formats: [wig],bigwig,bed,tdf,bigbed,all
+-p, --paired   To use paired end reads, specify the insert size
+               and the standard deviation (normal distribution model)
+               If you don’t know where to start, use -p 300,100
+-m, --lowmem   Use the RAM-memory saving algorithm. Default: none
+                 -m hard / will be used ~ 5 × Genome Size
+                 -m soft / will be used ~ 7 × Genome Size
+               Specifying this parameter in the value hard or soft 
+               makes it impossible to use multithreading.
 -h, --help     Show this help
+-v, --version  Show version number
 ```
 
 ## Examples:
@@ -55,67 +56,46 @@ chmod +x gematria.py
 Run with default parameters
 
 ```bash
-./gematria.py ./support/example.fa
+./gematria.py ./test/example.fa
 ```
 
 Read size determination `-l 20`
 
 ```bash
-./gematria.py ./support/example.fa -l 20
-```
-
-Define prefix for result files `-o prefix-string`
-
-```bash
-./gematria.py ./support/example.fa -o results-filename
+./gematria.py ./test/example.fa -l 20
 ```
 
 By default, the result is saved to the .wig file. 
-You can specify additional export formats `-f all`
+You can specify additional export formats `-o all`
 
 ```bash
-./gematria.py ./support/example.fa -f bigbed
-./gematria.py ./support/example.fa -f bigwig,bed,tdf
-./gematria.py ./support/example.fa -f all
+./gematria.py ./test/example.fa -o bigbed
+./gematria.py ./test/example.fa -o bigwig,bed,tdf
+./gematria.py ./test/example.fa -o all
 ```
 
-The default mappability calculation is for single-end reads `-r S`. 
+The default mappability calculation is for single-end reads `-p S`. 
 
 For paired reads, you can specify the insert size. 
 For example, if the insert size is normally distributed 
-with an average = 30 and sigma = 10, use the following parameter: `-r N:30:10`
+with an average = 30 and sigma = 10, use the following parameter: `-p 30,10`
 
 ```bash
-./gematria.py ./support/example.fa -r N:30:10
+./gematria.py ./test/example.fa -p 30,10
 ```
 
-For uniform distribution use the parameter: `-r U:from:to`
+Inside the program there are [two ways](https://github.com/latur/MakeGMS#algorithm-description) to calculate mappability track.
+If you want to use exactly the [approach with Filters](https://github.com/latur/MakeGMS#bloom-based-method), specify `-m hard` or `-m hard`
+This approach saves memory but does not have a multithreaded run.
 
 ```bash
-./gematria.py ./support/example.fa -r U:10:20
+./gematria.py ./test/example.fa -m hard
 ```
 
-Inside the program there are [two ways](https://github.com/latur/MakeGMS#algorithm-description) to calculate mappability track. 
-You can determine the number of threads `-t 8` and the quality of filtering `-q 4`.
-The method will be automatically selected depending on these parameters.
-
-Do not specify the number of threads more than you have free processors. 
-Be careful when specifying the quality of the filter. The amount of memory allocated to an application depends on this parameter.
+If you want to use the [QuickSort-approach](https://github.com/latur/MakeGMS#qsort-based-method), specify number of threads `-t 16`
 
 ```bash
-./gematria.py ./support/example.fa -t 12 -q 3
-```
-
-If you want to use exactly the [approach with Filters](https://github.com/latur/MakeGMS#bloom-based-method), specify `-t 0`
-
-```bash
-./gematria.py ./support/example.fa -t 0 -q 4
-```
-
-If you want to use the [QuickSort-approach](https://github.com/latur/MakeGMS#qsort-based-method), specify `-q 0`
-
-```bash
-./gematria.py ./support/example.fa -t 24 -q 0
+./gematria.py ./test/example.fa -t 16
 ```
 
 
@@ -135,20 +115,20 @@ wget https://bootstrap.pypa.io/get-pip.py
 
 ./cpython/python get-pip.py --user
 ./cpython/python .local/bin/pip3.7 \
-  install --user git+https://github.com/latur/MakeGMS numpy pyBigWig
+  install --user git+https://github.com/bioinf/Gematria numpy pyBigWig
 ```
 
 ### Gematria
 
 ```bash
-curl https://raw.githubusercontent.com/latur/Gematria/master/gematria.standalone.py > gematria.py
+curl https://raw.githubusercontent.com/bioinf/Gematria/master/gematria.standalone.py > gematria.py
 ./cpython/python gematria.py
 ```
 
 ## Development
 
 ```bash
-git clone https://github.com/latur/Gematria.git ./gematria
+git clone https://github.com/bioinf/Gematria.git ./gematria
 cd gematria
 ```
 
@@ -157,7 +137,7 @@ cd gematria
 Run gematria with different parameters:
 
 ```bash
-python3 ./support/gematria.test.py
+python3 ./test/gematria.test.py
 ```
 
 ### Gematria.py
@@ -166,6 +146,5 @@ The script uses the contents of the folder `/include` and auxiliary applications
 If you find it convenient to compile all the code into one script (`gematria.standalone.py`) and use it, run the command:
 
 ```bash
-python3 build.py
-chmod +x gematria.standalone.py
+python3 build.py && chmod +x gematria.standalone.py
 ```
